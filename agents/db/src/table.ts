@@ -1,4 +1,5 @@
 ﻿import * as Sentry from '@sentry/cloudflare';
+import { getAgentByName, type AgentNamespace } from 'agents';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
 import { z } from 'zod';
 import migrations from './migrations';
@@ -1600,8 +1601,11 @@ export class DbTable extends LiveShard {
 	}
 
 	private async parentStub(projectId: string) {
-		const namespace = this.env.DbAgent as unknown as DurableObjectNamespace<DbAgent>;
-		return namespace.get(namespace.idFromName(projectId));
+		const namespace = this.env.DbAgent as unknown as AgentNamespace<DbAgent>;
+		// getAgentByName, never a raw namespace stub - see the twin comment in
+		// collection.ts: a raw RPC can reach a cold parent before onStart's
+		// migrations and turn every first touch into a 503.
+		return getAgentByName(namespace, projectId);
 	}
 
 	protected getVerifier(): ProjectJwtVerifier {

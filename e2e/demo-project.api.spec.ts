@@ -85,6 +85,27 @@ test.describe('demo project', () => {
 		expect(settings.ok(), await settings.text()).toBeTruthy();
 	});
 
+	test('the first REST touch of a brand-new project auto-creates, never 503s', async ({
+		request
+	}) => {
+		// Regression: the collection's lazy config pull used a raw namespace
+		// stub, which bypasses the SDK's fetch-path initialization - so a parent
+		// DbAgent that had never been woken over HTTP had no schema yet, the
+		// pull died on "no such table: collections", and EVERY first REST touch
+		// of a fresh project answered a persistent 503. Every other test here
+		// provisions through the admin surface first (which wakes the parent
+		// over HTTP), which is exactly why this path went uncovered. A unique
+		// id per run keeps this a genuine first touch.
+		const fresh = `demo-${crypto.randomUUID().replaceAll('-', '').slice(0, 12)}`;
+		const write = await request.post(dbDocumentsPath(fresh, 'posts'), {
+			data: { data: { title: 'first touch' } }
+		});
+		// Default collection access is 'auth', so the correct answer to an
+		// anonymous write is an auth refusal - which proves the config pull and
+		// the auto-create both ran. The bug's signature is a 503.
+		expect(write.status(), await write.text()).toBe(401);
+	});
+
 	test('serves the demo database flow without an operator', async ({ request }) => {
 		// The Database snippets must run for the anonymous visitor too: the demo
 		// bypass covers the admin surface (creating the collection), and the

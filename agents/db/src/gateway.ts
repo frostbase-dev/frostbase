@@ -1,4 +1,5 @@
 import { DurableObject } from 'cloudflare:workers';
+import { getAgentByName, type AgentNamespace } from 'agents';
 import { count, eq, and } from 'drizzle-orm';
 import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
@@ -388,9 +389,12 @@ export class DbGateway extends DurableObject<Env> {
 	// -------------------------------------------------------------------------
 	// Parent plumbing (routing, origins, socket-pressure reports)
 
-	private parentStub() {
-		const namespace = this.env.DbAgent as unknown as DurableObjectNamespace<DbAgent>;
-		return namespace.get(namespace.idFromName(this.projectId));
+	private async parentStub() {
+		const namespace = this.env.DbAgent as unknown as AgentNamespace<DbAgent>;
+		// getAgentByName, never a raw namespace stub - see the twin comment in
+		// collection.ts: a raw RPC can reach a cold parent before onStart's
+		// migrations and turn every first touch into a 503.
+		return getAgentByName(namespace, this.projectId);
 	}
 
 	private routingTtl(): number {
@@ -403,7 +407,7 @@ export class DbGateway extends DurableObject<Env> {
 		if (cached && cached.expires > now) return cached;
 		let entry: ShardRoutingEntry = { kind: null, auto: false, expires: now + this.routingTtl() };
 		try {
-			const routing = await this.parentStub().getShardRouting(name);
+			const routing = await (await this.parentStub()).getShardRouting(name);
 			if (routing) {
 				entry = {
 					kind: routing.kind,
@@ -433,7 +437,7 @@ export class DbGateway extends DurableObject<Env> {
 		if (this.origins && this.origins.expires > now) return this.origins.allowed;
 		let allowed: string[] = [];
 		try {
-			allowed = await this.parentStub().getAllowedOrigins();
+			allowed = await (await this.parentStub()).getAllowedOrigins();
 		} catch {
 			// Fail open to the environment allowlist only - a broken parent
 			// link must not take realtime down for same-origin clients.
@@ -457,7 +461,7 @@ export class DbGateway extends DurableObject<Env> {
 			return;
 		}
 		try {
-			await this.parentStub().reportGatewaySockets(this.gatewayId, this.region, sockets);
+			await (await this.parentStub()).reportGatewaySockets(this.gatewayId, this.region, sockets);
 			this.lastReportedSockets = sockets;
 		} catch {
 			this.lastReportedSockets = null;
