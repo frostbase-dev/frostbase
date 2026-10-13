@@ -1,6 +1,6 @@
-﻿{
+{
 	"name": "@frostbase-dev/db",
-	"version": "0.7.0",
+	"version": "0.7.1",
 	"description": "Documents with live queries and schema-first SQL tables on Cloudflare Durable Objects, one isolated instance per collection or table - the database primitive behind Frostbase.",
 	"license": "Apache-2.0",
 	"type": "module",

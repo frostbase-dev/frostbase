@@ -7,7 +7,7 @@ Frostbase is agent-first: every backend primitive ships as a versioned npm packa
 ## Site
 
 - [Home](https://frostbase.dev/): what it is, how it compares to Firebase and Supabase, architecture, and roadmap.
-- [agents.md](https://frostbase.dev/agents.md): setup instructions written for coding agents — throwaway demo projects, self-hosted deploys, and managed projects.
+- [agents.md](https://frostbase.dev/agents.md): setup instructions written for coding agents - throwaway demo projects, self-hosted deploys, and managed projects.
 - [Pricing](https://frostbase.dev/pricing): the same workload priced on Cloudflare, Firebase, and Supabase, with dated sources.
 - [Live demo](https://frostbase.dev/dashboard): an ephemeral throwaway project, no sign-up.
 
