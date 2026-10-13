@@ -1,4 +1,5 @@
 ﻿import * as Sentry from '@sentry/cloudflare';
+import { getAgentByName, type AgentNamespace } from 'agents';
 import { count, eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
 import { z } from 'zod';
@@ -1305,8 +1306,13 @@ export class DbCollection extends LiveShard {
 	}
 
 	private async parentStub(projectId: string) {
-		const namespace = this.env.DbAgent as unknown as DurableObjectNamespace<DbAgent>;
-		return namespace.get(namespace.idFromName(projectId));
+		const namespace = this.env.DbAgent as unknown as AgentNamespace<DbAgent>;
+		// getAgentByName, never a raw namespace stub: plain RPC bypasses the
+		// SDK's fetch-path initialization, so a cold parent would serve the
+		// config pull before onStart's migrations and every first REST touch
+		// of a fresh project would 503 ("no such table: collections").
+		// getAgentByName synchronizes on onStart before returning the stub.
+		return getAgentByName(namespace, projectId);
 	}
 
 	protected getVerifier(): ProjectJwtVerifier {

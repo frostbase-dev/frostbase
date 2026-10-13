@@ -32,6 +32,26 @@ test.describe('landing page (frontend)', () => {
 		await expect(page.getByText('AuthAgent · DO SQLite')).toBeVisible();
 	});
 
+	test('the install section offers the CLI command and the agent prompt', async ({
+		page,
+		request
+	}) => {
+		await page.goto('/');
+
+		await expect(page.getByRole('heading', { name: 'Or let your agent do it' })).toBeVisible();
+		await expect(page.getByTestId('install-command')).toContainText(
+			'npx @frostbase-dev/cli init my-backend'
+		);
+		await expect(page.getByTestId('agent-prompt')).toContainText(
+			'Read frostbase.dev/agents.md and set up Frostbase in this project'
+		);
+
+		// The prompt is only honest if the file it points at is actually served.
+		const response = await request.get('/agents.md');
+		expect(response.status()).toBe(200);
+		expect(await response.text()).toContain('# Set up Frostbase');
+	});
+
 	test('the pricing story and comparison table state the trade-offs', async ({ page }) => {
 		await page.goto('/');
 		await expect(page.getByRole('heading', { name: /Our price/ })).toBeVisible();
