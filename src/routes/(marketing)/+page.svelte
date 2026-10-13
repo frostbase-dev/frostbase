@@ -467,10 +467,10 @@
 							class="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 font-mono text-xs text-muted-foreground/70"
 						>
 							<span class="flex items-center gap-1.5">
-								<Star class="h-3.5 w-3.5 text-primary" /> 231 stars on GitHub
+								<Star class="h-3.5 w-3.5 text-primary" /> 233 stars on GitHub
 							</span>
 							<span class="flex items-center gap-1.5">
-								<GitFork class="h-3.5 w-3.5" /> 10 forks
+								<GitFork class="h-3.5 w-3.5" /> 17 forks
 							</span>
 							<span class="flex items-center gap-1.5">
 								<Boxes class="h-3.5 w-3.5" /> 900+ demo backends created
@@ -788,8 +788,9 @@
 
 		<!-- INSTALL: the CLI one-liner and its agent-shaped twin, Deno-style.
 		     The boxes stay zinc-950 in both themes, matching every other
-		     terminal block on this page. -->
-		<section id="install" class="px-4 pb-16 sm:px-8 md:pb-28">
+		     terminal block on this page. This is the card band that heads the
+		     card/white alternation; every band below flips accordingly. -->
+		<section id="install" class="border-y border-border bg-card px-4 py-16 sm:px-8 sm:py-24">
 			<div class="mx-auto max-w-3xl">
 				<div class="text-center">
 					<span
@@ -831,7 +832,7 @@
 
 				<div class="mt-6 overflow-hidden rounded-xl border border-border">
 					<div
-						class="flex flex-wrap items-center gap-x-2 gap-y-0.5 border-b border-border bg-card px-5 py-2.5 font-mono text-xs text-muted-foreground"
+						class="flex flex-wrap items-center gap-x-2 gap-y-0.5 border-b border-border bg-background/60 px-5 py-2.5 font-mono text-xs text-muted-foreground"
 					>
 						{#each agentNames as name (name)}
 							<span>{name}</span>
@@ -869,8 +870,9 @@
 		</section>
 
 		<!-- PRICING: the real /pricing calculator, embedded - straight above
-		     the API section on purpose, with /pricing's own hero copy. -->
-		<section id="pricing" class="border-y border-border bg-card px-4 py-16 sm:px-8 sm:py-24">
+		     the API section on purpose, with /pricing's own hero copy.
+		     White band, now that the install card band sits above it. -->
+		<section id="pricing" class="px-4 py-16 sm:px-8 sm:py-24">
 			<div class="mx-auto max-w-6xl">
 				<div class="mb-10 max-w-3xl">
 					<span
@@ -895,8 +897,8 @@
 			</div>
 		</section>
 
-		<!-- COMPARE -->
-		<section id="compare" class="px-4 py-16 sm:px-8 sm:py-24">
+		<!-- COMPARE (card band) -->
+		<section id="compare" class="border-y border-border bg-card px-4 py-16 sm:px-8 sm:py-24">
 			<div class="mx-auto max-w-6xl">
 				<div class="mb-10 max-w-xl">
 					<span
@@ -964,8 +966,8 @@
 			</div>
 		</section>
 
-		<!-- API -->
-		<section id="api" class="border-y border-border bg-card px-4 py-16 sm:px-8 sm:py-24">
+		<!-- API (white band) -->
+		<section id="api" class="px-4 py-16 sm:px-8 sm:py-24">
 			<div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 md:grid-cols-[2fr_3fr]">
 				<div>
 					<span
@@ -1048,9 +1050,9 @@
 			</div>
 		</section>
 
-		<!-- ARCHITECTURE (white band: keeps the section backgrounds alternating
-		     card/white now that the pricing band sits above the API card) -->
-		<section id="architecture" class="px-4 py-14 sm:px-8 sm:py-20">
+		<!-- ARCHITECTURE (card band: keeps the backgrounds alternating
+		     card/white now that the install band heads the rotation) -->
+		<section id="architecture" class="border-y border-border bg-card px-4 py-14 sm:px-8 sm:py-20">
 			<div class="mx-auto max-w-6xl">
 				<div class="mb-10 max-w-xl">
 					<span
@@ -1086,8 +1088,8 @@
 			</div>
 		</section>
 
-		<!-- ROADMAP -->
-		<section id="roadmap" class="border-y border-border bg-card px-4 py-16 sm:px-8 sm:py-24">
+		<!-- ROADMAP (white band) -->
+		<section id="roadmap" class="px-4 py-16 sm:px-8 sm:py-24">
 			<div class="mx-auto max-w-6xl">
 				<div class="mb-14 max-w-xl">
 					<span
@@ -1135,8 +1137,8 @@
 			</div>
 		</section>
 
-		<!-- FAQ -->
-		<section id="faq" class="px-4 py-16 sm:px-8 sm:py-24">
+		<!-- FAQ (card band) -->
+		<section id="faq" class="border-y border-border bg-card px-4 py-16 sm:px-8 sm:py-24">
 			<div class="mx-auto max-w-3xl">
 				<div class="mb-12 text-center">
 					<span
@@ -1169,8 +1171,9 @@
 			</div>
 		</section>
 
-		<!-- CTA BAND (card band: closes out the alternation after the white FAQ) -->
-		<section class="border-t border-border bg-card px-4 py-20 text-center sm:px-8 sm:py-28">
+		<!-- CTA BAND (white band: closes out the alternation after the card FAQ,
+		     whose own bottom border already draws the separation) -->
+		<section class="px-4 py-20 text-center sm:px-8 sm:py-28">
 			<span
 				class="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium tracking-wide text-primary uppercase"
 			>
