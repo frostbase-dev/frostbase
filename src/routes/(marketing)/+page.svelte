@@ -19,6 +19,7 @@
 		X,
 		ArrowRight,
 		Check,
+		Copy,
 		ChevronDown,
 		Database,
 		GitFork,
@@ -57,6 +58,26 @@
 		'Workers AI',
 		'Analytics Engine'
 	];
+
+	// The install section's two one-liners: the CLI command and its
+	// agent-shaped twin, which points at /agents.md (static/agents.md) - the
+	// setup instructions written for coding agents, throwaway demo path
+	// included. Copy state is per box so one click never flips the other icon.
+	const installCommand = 'npx @frostbase-dev/cli init my-backend';
+	const agentPrompt = 'Read frostbase.dev/agents.md and set up Frostbase in this project';
+	const agentNames = ['Claude Code', 'Codex', 'Gemini CLI', 'OpenCode', 'Cursor'];
+	let copiedInstall = $state<'cli' | 'agent' | null>(null);
+	let copyInstallTimer: ReturnType<typeof setTimeout> | undefined;
+	async function copyInstall(kind: 'cli' | 'agent', text: string) {
+		try {
+			await navigator.clipboard.writeText(text);
+			copiedInstall = kind;
+			clearTimeout(copyInstallTimer);
+			copyInstallTimer = setTimeout(() => (copiedInstall = null), 1500);
+		} catch {
+			// clipboard unavailable - the text stays selectable
+		}
+	}
 
 	// The comparison matrix. Cells are a rating plus a short receipt - never a
 	// bare checkmark. Competitor cells stay qualitative on purpose: exact
@@ -762,6 +783,88 @@
 						{/each}
 					</div>
 				</div>
+			</div>
+		</section>
+
+		<!-- INSTALL: the CLI one-liner and its agent-shaped twin, Deno-style.
+		     The boxes stay zinc-950 in both themes, matching every other
+		     terminal block on this page. -->
+		<section id="install" class="px-4 pb-16 sm:px-8 md:pb-28">
+			<div class="mx-auto max-w-3xl">
+				<div class="text-center">
+					<span
+						class="inline-flex items-center rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-medium tracking-wide text-primary uppercase"
+						>Get started</span
+					>
+					<h2 class="mt-4 text-3xl font-bold md:text-4xl">A backend in one command.</h2>
+					<p class="mx-auto mt-3 max-w-xl text-muted-foreground">
+						Scaffold a Worker with auth installed, add the database, deploy to your own Cloudflare
+						account.
+					</p>
+				</div>
+
+				<div
+					class="relative mt-8 flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-zinc-950 px-5 py-4"
+				>
+					<code
+						class="min-w-0 flex-1 overflow-x-auto font-mono text-sm whitespace-nowrap text-zinc-100"
+						data-testid="install-command"><span class="text-primary">$</span> {installCommand}</code
+					>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="h-8 w-8 flex-shrink-0 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+						aria-label="Copy install command"
+						data-testid="copy-install-command"
+						onclick={() => copyInstall('cli', installCommand)}
+					>
+						{#if copiedInstall === 'cli'}<Check class="h-3.5 w-3.5" />{:else}<Copy
+								class="h-3.5 w-3.5"
+							/>{/if}
+					</Button>
+				</div>
+
+				<div class="mt-14 text-center">
+					<h3 class="text-2xl font-bold md:text-3xl">Or let your agent do it</h3>
+					<p class="mt-2 text-sm text-muted-foreground">Paste this into any coding agent.</p>
+				</div>
+
+				<div class="mt-6 overflow-hidden rounded-xl border border-border">
+					<div
+						class="flex flex-wrap items-center gap-x-2 gap-y-0.5 border-b border-border bg-card px-5 py-2.5 font-mono text-xs text-muted-foreground"
+					>
+						{#each agentNames as name (name)}
+							<span>{name}</span>
+							<span class="text-muted-foreground/40" aria-hidden="true">·</span>
+						{/each}
+						<span class="text-muted-foreground/60">&lt;your agent&gt;</span>
+					</div>
+					<div class="relative flex items-center gap-3 bg-zinc-950 px-5 py-4">
+						<code class="min-w-0 flex-1 font-mono text-sm text-zinc-100" data-testid="agent-prompt"
+							><span class="text-primary">&gt;</span> {agentPrompt}</code
+						>
+						<Button
+							variant="ghost"
+							size="icon"
+							class="h-8 w-8 flex-shrink-0 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+							aria-label="Copy agent prompt"
+							data-testid="copy-agent-prompt"
+							onclick={() => copyInstall('agent', agentPrompt)}
+						>
+							{#if copiedInstall === 'agent'}<Check class="h-3.5 w-3.5" />{:else}<Copy
+									class="h-3.5 w-3.5"
+								/>{/if}
+						</Button>
+					</div>
+				</div>
+				<p class="mt-3 text-center text-xs text-muted-foreground/70">
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- static asset, not a route -->
+					<a href="/agents.md" class="underline underline-offset-2 hover:text-foreground"
+						>agents.md</a
+					>
+					includes a zero-account path: the agent builds on a throwaway demo project and hands you the
+					live dashboard.
+				</p>
 			</div>
 		</section>
 
