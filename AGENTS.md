@@ -119,6 +119,9 @@ cd agents/db && npx tsc --noEmit && npm run test:unit
   `src/migrations.ts`. Never hand-edit either; the inlining is what lets agents
   ship as plain npm dependencies with no Text-module rule in the consumer's
   config.
+- **Agent relative imports carry `.js`** (`from './schemas.js'`). The
+  `client`/`admin` entrypoints run in plain Node with no bundler, so the agents
+  build with `nodenext`, which rejects an extensionless import at typecheck.
 - **After changing bindings**, regenerate types: `npm run cf-typegen` at the
   root, `npx wrangler types` in the agent. Never hand-edit
   `worker-configuration.d.ts`.
