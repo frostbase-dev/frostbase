@@ -10,8 +10,8 @@ import {
 	EMPTY_CONTEXT,
 	type EvaluableParameter,
 	type RemoteConfigContext,
-} from './remote-config';
-import { remoteConfigConditionSchema, type RemoteConfigCondition } from './schemas';
+} from './remote-config.js';
+import { remoteConfigConditionSchema, type RemoteConfigCondition } from './schemas.js';
 
 /**
  * The evaluator decides which cohort a caller lands in, so the cases that

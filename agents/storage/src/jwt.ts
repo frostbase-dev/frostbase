@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/cloudflare';
 import { importJWK, jwtVerify, type JWK } from 'jose';
-import { jwksResponseSchema, jwtClaimsSchema, type JwtClaims } from './schemas';
+import { jwksResponseSchema, jwtClaimsSchema, type JwtClaims } from './schemas.js';
 
 /**
  * Verifies auth-agent project JWTs without coupling the agents at runtime -

@@ -1,5 +1,5 @@
-import { verifyProjectJwt, type VerifyResult } from './jwt';
-import type { AccessMode } from './schemas';
+import { verifyProjectJwt, type VerifyResult } from './jwt.js';
+import type { AccessMode } from './schemas.js';
 
 /**
  * The per-request access gate and CORS policy for the object paths - the db

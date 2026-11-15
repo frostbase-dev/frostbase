@@ -4,7 +4,7 @@
  * directions: weakening the contract makes a suppression unused, which
  * TypeScript reports.
  */
-import type { AssertStorageAgentEnv } from './bindings';
+import type { AssertStorageAgentEnv } from './bindings.js';
 
 // This repository's own generated Env satisfies the contract.
 type _SelfCheck = AssertStorageAgentEnv<Env>;

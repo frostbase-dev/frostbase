@@ -3,12 +3,12 @@ import { getAgentByName, type AgentNamespace } from 'agents';
 import { count, eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
 import { z } from 'zod';
-import migrations from './migrations';
-import { checkAccess, corsHeadersFor, drainUnusedBody, withCors } from './access';
-import { primaryLocation } from './colo';
-import { collectionMeta, documents } from './db/schema';
-import { ProjectJwtVerifier } from './jwt';
-import { LiveShard, type LiveGate } from './live';
+import migrations from './migrations.js';
+import { checkAccess, corsHeadersFor, drainUnusedBody, withCors } from './access.js';
+import { primaryLocation } from './colo.js';
+import { collectionMeta, documents } from './db/schema.js';
+import { ProjectJwtVerifier } from './jwt.js';
+import { LiveShard, type LiveGate } from './live.js';
 import {
 	appendLog,
 	clearReplicas,
@@ -26,16 +26,16 @@ import {
 	writeReplicaMeta,
 	type ReplicaMeta,
 	type ReplicaRole,
-} from './replication';
+} from './replication.js';
 import {
 	compileAggregate,
 	compileQuery,
 	decodeCursor,
 	encodeCursor,
 	type DecodedCursor,
-} from './query';
-import { shardBookmarkForTime, shardCurrentBookmark, shardRestoreTo } from './pitr';
-import { validateDocument } from './rules';
+} from './query.js';
+import { shardBookmarkForTime, shardCurrentBookmark, shardRestoreTo } from './pitr.js';
+import { validateDocument } from './rules.js';
 import { v7 as uuidv7 } from 'uuid';
 import {
 	aggregateRequestSchema,
@@ -72,8 +72,8 @@ import {
 	type RepPullResult,
 	type RepStatus,
 	type RestoreOutcome,
-} from './schemas';
-import { isDurableObjectReset, type DbAgent } from './agent';
+} from './schemas.js';
+import { isDurableObjectReset, type DbAgent } from './agent.js';
 
 /**
  * One collection's documents, query engine, and live-query subscriptions.

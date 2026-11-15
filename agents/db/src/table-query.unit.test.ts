@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { matchesQuery, orderComparator } from './query';
-import { compileTableQuery } from './table-query';
-import { querySchema, tableColumnsSchema, type Query, type TableColumn } from './schemas';
+import { matchesQuery, orderComparator } from './query.js';
+import { compileTableQuery } from './table-query.js';
+import { querySchema, tableColumnsSchema, type Query, type TableColumn } from './schemas.js';
 
 /**
  * The table compiler and the SHARED JS matcher must agree - snapshots come

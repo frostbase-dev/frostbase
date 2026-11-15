@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { checkAccess } from './access';
-import type { ProjectJwtVerifier } from './jwt';
-import type { AccessMode } from './schemas';
+import { checkAccess } from './access.js';
+import type { ProjectJwtVerifier } from './jwt.js';
+import type { AccessMode } from './schemas.js';
 
 /**
  * The shared gate. `access.ts` is EXTRACTED, not copied - DbCollection and

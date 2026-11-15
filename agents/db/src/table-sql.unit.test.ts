@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { prepareTableSql, prepareViewSql } from './table-sql';
-import { compileTableAggregate } from './table-query';
-import { tableColumnsSchema, type TableColumn } from './schemas';
+import { prepareTableSql, prepareViewSql } from './table-sql.js';
+import { compileTableAggregate } from './table-query.js';
+import { tableColumnsSchema, type TableColumn } from './schemas.js';
 
 /** The raw-SQL gate exists to refuse bypasses; pin the refusals hardest. */
 

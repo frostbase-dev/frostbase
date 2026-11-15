@@ -1,10 +1,10 @@
 import * as Sentry from '@sentry/cloudflare';
 import { getAgentByName, routeAgentRequest } from 'agents';
 import { WorkerEntrypoint } from 'cloudflare:workers';
-import { checkAccess, corsHeadersFor, drainUnusedBody, withCors } from './access';
-import { StorageAgent as StorageAgentBase, type BucketAccessAnswer } from './agent';
-import { StorageBucket as StorageBucketBase, type BucketIdentity } from './bucket';
-import { parseObjectKey, r2ObjectKey } from './keys';
+import { checkAccess, corsHeadersFor, drainUnusedBody, withCors } from './access.js';
+import { StorageAgent as StorageAgentBase, type BucketAccessAnswer } from './agent.js';
+import { StorageBucket as StorageBucketBase, type BucketIdentity } from './bucket.js';
+import { parseObjectKey, r2ObjectKey } from './keys.js';
 import {
 	DEMO_BUCKET,
 	demoBucketSummary,
@@ -13,8 +13,8 @@ import {
 	demoOverview,
 	demoRefusal,
 	type DemoObjectSummary,
-} from './demo';
-import { gateOperatorRoutes } from './route-access';
+} from './demo.js';
+import { gateOperatorRoutes } from './route-access.js';
 import {
 	DEMO_PROJECT_PATTERN,
 	bucketNameSchema,
@@ -23,7 +23,7 @@ import {
 	signedUrlRequestSchema,
 	completeUploadRequestSchema,
 	createUploadRequestSchema,
-} from './schemas';
+} from './schemas.js';
 import {
 	SIGNED_PARAM_EXPIRES,
 	SIGNED_PARAM_SIGNATURE,
@@ -45,7 +45,7 @@ import {
 	sealUpload,
 	type SignedMethod,
 	type UploadEnvelope,
-} from './signing';
+} from './signing.js';
 
 /**
  * storage-agent worker - the BYTE PATH lives here, not in a Durable Object.
@@ -1716,8 +1716,8 @@ export const StorageBucket = Sentry.instrumentDurableObjectWithSentry(
 	StorageBucketBase,
 );
 
-export type { StorageAgentState, StorageBucketSummary } from './agent';
-export type { ObjectSummary } from './bucket';
-export type { AssertStorageAgentEnv, StorageAgentBindings } from './bindings';
+export type { StorageAgentState, StorageBucketSummary } from './agent.js';
+export type { ObjectSummary } from './bucket.js';
+export type { AssertStorageAgentEnv, StorageAgentBindings } from './bindings.js';
 
 export default Sentry.withSentry(sentryOptions, StorageService);

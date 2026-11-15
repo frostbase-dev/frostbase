@@ -1,23 +1,23 @@
 import * as Sentry from '@sentry/cloudflare';
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { getAgentByName, routeAgentRequest } from 'agents';
-import { drainUnusedBody } from './access';
-import { gateOperatorRoutes } from './route-access';
-import { isDurableObjectReset, DbAgent as DbAgentBase } from './agent';
-import { DbCollection as DbCollectionBase } from './collection';
-import { DbGateway as DbGatewayBase, gatewayName } from './gateway';
-import { DbTable as DbTableBase } from './table';
-import { DbView as DbViewBase } from './view';
-import { viewInstanceName } from './replication';
-import { regionHint, REGION_HINTS } from './region';
-import { replicaName } from './replication';
-import { collectionNameSchema, projectIdSchema } from './schemas';
+import { drainUnusedBody } from './access.js';
+import { gateOperatorRoutes } from './route-access.js';
+import { isDurableObjectReset, DbAgent as DbAgentBase } from './agent.js';
+import { DbCollection as DbCollectionBase } from './collection.js';
+import { DbGateway as DbGatewayBase, gatewayName } from './gateway.js';
+import { DbTable as DbTableBase } from './table.js';
+import { DbView as DbViewBase } from './view.js';
+import { viewInstanceName } from './replication.js';
+import { regionHint, REGION_HINTS } from './region.js';
+import { replicaName } from './replication.js';
+import { collectionNameSchema, projectIdSchema } from './schemas.js';
 import {
 	evaluateAll,
 	payloadEtag,
 	type EvaluableParameter,
 	type RemoteConfigContext,
-} from './remote-config';
+} from './remote-config.js';
 
 export type {
 	DbActivityEvent,
@@ -25,8 +25,8 @@ export type {
 	DbCollectionSummary,
 	DbTableSummary,
 	DbOverview,
-} from './agent';
-export type { AssertDbAgentEnv, DbAgentBindings } from './bindings';
+} from './agent.js';
+export type { AssertDbAgentEnv, DbAgentBindings } from './bindings.js';
 export type {
 	AccessMode,
 	AggregateRequest,
@@ -42,7 +42,7 @@ export type {
 	ServerFrame,
 	TableColumn,
 	TableConfig,
-} from './schemas';
+} from './schemas.js';
 
 const sentryOptions = (env: Env) => ({
 	dsn: env.SENTRY_DSN,

@@ -1,9 +1,9 @@
 import * as Sentry from '@sentry/cloudflare';
 import { getAgentByName, routeAgentRequest } from 'agents';
 import { WorkerEntrypoint } from 'cloudflare:workers';
-import { gateOperatorRoutes } from './route-access';
-import { AuthAgent as AuthAgentBase } from './agent';
-import { projectIdSchema } from './schemas';
+import { gateOperatorRoutes } from './route-access.js';
+import { AuthAgent as AuthAgentBase } from './agent.js';
+import { projectIdSchema } from './schemas.js';
 
 export type {
 	AgentChatReply,
@@ -15,8 +15,8 @@ export type {
 	ConsoleMe,
 	ConsoleOrgMembership,
 	ConsolePendingInvitation,
-} from './agent';
-export type { AssertAuthAgentEnv, AuthAgentBindings } from './bindings';
+} from './agent.js';
+export type { AssertAuthAgentEnv, AuthAgentBindings } from './bindings.js';
 
 const sentryOptions = (env: Env) => ({
 	dsn: env.SENTRY_DSN,

@@ -9,10 +9,14 @@
 		/* Specify what JSX code is generated. */
 		"jsx": "react-jsx",
 
-		/* Specify what module code is generated. */
-		"module": "es2022",
-		/* Specify how TypeScript looks up a file from a given module specifier. */
-		"moduleResolution": "node",
+		/*
+		 * The published package runs directly in Node (the `client`/`admin`
+		 * entrypoints), not only through a bundler, so relative imports must
+		 * carry `.js` extensions to resolve at runtime. `nodenext` makes tsc
+		 * enforce that instead of leaving it to fail on the consumer's machine.
+		 */
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
 		/* Enable importing .json files */
 		"resolveJsonModule": true,
 

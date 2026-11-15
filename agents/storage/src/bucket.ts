@@ -2,12 +2,12 @@ import { DurableObject } from 'cloudflare:workers';
 import { and, asc, count, eq, gt, sql, sum } from 'drizzle-orm';
 import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
-import * as schema from './db/schema';
-import { objects, type ObjectRecord } from './db/schema';
-import migrations from './migrations';
-import { r2BucketPrefix } from './keys';
-import { reconcileActions, type ReconcileEntry } from './reconcile';
-import type { StorageAgent } from './agent';
+import * as schema from './db/schema.js';
+import { objects, type ObjectRecord } from './db/schema.js';
+import migrations from './migrations.js';
+import { r2BucketPrefix } from './keys.js';
+import { reconcileActions, type ReconcileEntry } from './reconcile.js';
+import type { StorageAgent } from './agent.js';
 
 /**
  * StorageBucket - one plain Durable Object per bucket (`<projectId>:<bucket>`),

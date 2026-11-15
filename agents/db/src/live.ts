@@ -1,12 +1,12 @@
 import { DurableObject } from 'cloudflare:workers';
 import { and, count, eq } from 'drizzle-orm';
 import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
-import * as schema from './db/schema';
-import { subscriptions } from './db/schema';
-import type { ProjectJwtVerifier } from './jwt';
-import { parseShardRole, type ShardRole } from './replication';
-import { isWindowed, matchesQuery } from './query';
-import { hasPermission } from './rules';
+import * as schema from './db/schema.js';
+import { subscriptions } from './db/schema.js';
+import type { ProjectJwtVerifier } from './jwt.js';
+import { parseShardRole, type ShardRole } from './replication.js';
+import { isWindowed, matchesQuery } from './query.js';
+import { hasPermission } from './rules.js';
 import {
 	clientFrameSchema,
 	querySchema,
@@ -18,8 +18,8 @@ import {
 	type Query,
 	type RemoteSubscribeResult,
 	type ServerFrame,
-} from './schemas';
-import type { DbGateway } from './gateway';
+} from './schemas.js';
+import type { DbGateway } from './gateway.js';
 
 /**
  * The live-query engine, shared by DbCollection and DbTable as a base class

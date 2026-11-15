@@ -1,5 +1,5 @@
-import { selectList } from './table-schema';
-import type { TableColumn } from './schemas';
+import { selectList } from './table-schema.js';
+import type { TableColumn } from './schemas.js';
 
 /**
  * The raw-SQL gate for the D1-shaped table endpoint (T2). Pure module,

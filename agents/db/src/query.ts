@@ -1,4 +1,4 @@
-import type { AggregateRequest, Query, WhereClause } from './schemas';
+import type { AggregateRequest, Query, WhereClause } from './schemas.js';
 
 /**
  * Pure query module: one parsed Query drives BOTH evaluators - the SQL

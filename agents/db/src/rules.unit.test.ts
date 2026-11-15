@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { hasPermission, validateDocument } from './rules';
-import { validatorSchema, type CollectionValidator } from './schemas';
+import { hasPermission, validateDocument } from './rules.js';
+import { validatorSchema, type CollectionValidator } from './schemas.js';
 
 /**
  * Rules-lite behavior: the validator DSL over top-level fields, and the

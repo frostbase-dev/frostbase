@@ -5,12 +5,12 @@
  * in BOTH directions: weakening the contract makes a suppression unused,
  * which TypeScript reports.
  */
-import type { AssertDbAgentEnv } from './bindings';
-import type { DbAgent } from './agent';
-import type { DbCollection } from './collection';
-import type { DbGateway } from './gateway';
-import type { DbTable } from './table';
-import type { DbView } from './view';
+import type { AssertDbAgentEnv } from './bindings.js';
+import type { DbAgent } from './agent.js';
+import type { DbCollection } from './collection.js';
+import type { DbGateway } from './gateway.js';
+import type { DbTable } from './table.js';
+import type { DbView } from './view.js';
 
 /** This repository's own generated Env is a consumer too. */
 export type _SelfCheck = AssertDbAgentEnv<Env>;

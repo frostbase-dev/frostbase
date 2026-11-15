@@ -13,8 +13,8 @@
  * `DurableObjectNamespace<never>` would be misleading: `never` fails the
  * contravariant check that a real class passes.
  */
-import type { AuthAgent } from './agent';
-import type { AssertAuthAgentEnv } from './bindings';
+import type { AuthAgent } from './agent.js';
+import type { AssertAuthAgentEnv } from './bindings.js';
 
 /**
  * This repository's own `Env` is a consumer of the contract like any other. If

@@ -2,10 +2,10 @@
 import { DurableObject } from 'cloudflare:workers';
 import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
-import { corsHeadersFor, drainUnusedBody, withCors } from './access';
-import * as schema from './db/schema';
-import { ProjectJwtVerifier } from './jwt';
-import migrations from './migrations';
+import { corsHeadersFor, drainUnusedBody, withCors } from './access.js';
+import * as schema from './db/schema.js';
+import { ProjectJwtVerifier } from './jwt.js';
+import migrations from './migrations.js';
 import {
 	parseViewRole,
 	readViewSource,
@@ -14,10 +14,10 @@ import {
 	writeViewSource,
 	type ViewRole,
 	type ViewSourceRow,
-} from './replication';
-import { hasPermission } from './rules';
-import { planDdl, quoteIdent, toSqlValue } from './table-schema';
-import { prepareViewSql } from './table-sql';
+} from './replication.js';
+import { hasPermission } from './rules.js';
+import { planDdl, quoteIdent, toSqlValue } from './table-schema.js';
+import { prepareViewSql } from './table-sql.js';
 import {
 	logEntrySchema,
 	storedViewConfigSchema,
@@ -32,8 +32,8 @@ import {
 	type TableSqlResult,
 	type ViewConfig,
 	type ViewStatus,
-} from './schemas';
-import type { DbTable } from './table';
+} from './schemas.js';
+import type { DbTable } from './table.js';
 
 /**
  * `DbView` - the join view (JOIN1).

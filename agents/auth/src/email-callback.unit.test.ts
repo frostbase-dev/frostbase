@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resolveEmailCallback } from './email-callback';
+import { resolveEmailCallback } from './email-callback.js';
 
 /**
  * The rewrite runs on every emailed auth link, and its input origin is an

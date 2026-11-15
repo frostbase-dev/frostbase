@@ -3,10 +3,10 @@ import { Agent, type AgentContext } from 'agents';
 import { and, asc, desc, eq, lt } from 'drizzle-orm';
 import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
-import migrations from './migrations';
-import * as schema from './db/schema';
-import { collections, gateways, restorePoints } from './db/schema';
-import { pickSubscribeSibling, viewInstanceName } from './replication';
+import migrations from './migrations.js';
+import * as schema from './db/schema.js';
+import { collections, gateways, restorePoints } from './db/schema.js';
+import { pickSubscribeSibling, viewInstanceName } from './replication.js';
 import {
 	aggregateRequestSchema,
 	checkpointRequestSchema,
@@ -62,11 +62,11 @@ import {
 	type TableConfig,
 	type ViewConfig,
 	type ViewStatus,
-} from './schemas';
-import { drainUnusedBody } from './access';
-import type { EvaluableParameter } from './remote-config';
-import { ProjectJwtVerifier } from './jwt';
-import { primaryLocation, type PrimaryLocation } from './colo';
+} from './schemas.js';
+import { drainUnusedBody } from './access.js';
+import type { EvaluableParameter } from './remote-config.js';
+import { ProjectJwtVerifier } from './jwt.js';
+import { primaryLocation, type PrimaryLocation } from './colo.js';
 
 /** The persisted form of the coordinator's location: the probe result plus
  * when it was taken, so a relocated instance can correct itself. */
@@ -78,11 +78,11 @@ interface StoredLocation extends PrimaryLocation {
  * the background. Matches the isolate-level cache in colo.ts - a shorter
  * window here would only re-read that cache and write the same value back. */
 const LOCATION_REFRESH_MS = 6 * 60 * 60 * 1000;
-import { planDdl, uniqueViolationColumn } from './table-schema';
-import type { DbCollection } from './collection';
-import type { DbGateway } from './gateway';
-import type { DbTable } from './table';
-import type { DbView } from './view';
+import { planDdl, uniqueViolationColumn } from './table-schema.js';
+import type { DbCollection } from './collection.js';
+import type { DbGateway } from './gateway.js';
+import type { DbTable } from './table.js';
+import type { DbView } from './view.js';
 
 /**
  * JOIN1 materializes ONE instance per view, not one per region.

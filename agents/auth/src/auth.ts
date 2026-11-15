@@ -4,8 +4,8 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { anonymous, bearer, jwt, organization } from 'better-auth/plugins';
 import { and, asc, eq, ne, or, isNull } from 'drizzle-orm';
 import type { DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
-import { resolveEmailCallback } from './email-callback';
-import * as schema from './db/schema';
+import { resolveEmailCallback } from './email-callback.js';
+import * as schema from './db/schema.js';
 
 /** Providers whose sign-in attests a verified email. Shared between the
  * accountLinking trust list and the credential-supersession hook so the two
