@@ -1,6 +1,6 @@
-import { aggregateRequestSchema, querySchema } from './schemas';
-import type { AggregateRequest, DbDocument, Query } from './schemas';
-import type { Typed } from './client';
+import { aggregateRequestSchema, querySchema } from './schemas.js';
+import type { AggregateRequest, DbDocument, Query } from './schemas.js';
+import type { Typed } from './client.js';
 
 /**
  * The ADMIN client - the credential a server holds, with a real API in front

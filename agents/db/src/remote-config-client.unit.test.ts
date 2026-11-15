@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createRemoteConfig } from './remote-config-client';
+import { createRemoteConfig } from './remote-config-client.js';
 
 /**
  * The client's job is to make config safe to read on the hot path of rendering.

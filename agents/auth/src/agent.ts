@@ -3,7 +3,7 @@ import { and, asc, count, desc, eq, gt, inArray, lt, or, sql } from 'drizzle-orm
 import { drizzle } from 'drizzle-orm/durable-sqlite';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
 import * as Sentry from '@sentry/cloudflare';
-import migrations from './migrations';
+import migrations from './migrations.js';
 import {
 	createProjectAuth,
 	ensureConsoleAdmin,
@@ -11,8 +11,8 @@ import {
 	type AuthDatabase,
 	type AuthEmailMessage,
 	type ProjectAuth,
-} from './auth';
-import * as schema from './db/schema';
+} from './auth.js';
+import * as schema from './db/schema.js';
 import {
 	analyticsApiResponseSchema,
 	authPolicySchema,
@@ -35,7 +35,7 @@ import {
 	type AuthPolicy,
 	type ProviderUpdates,
 	type SocialCredentials,
-} from './schemas';
+} from './schemas.js';
 
 const MAX_EVENTS = 50;
 /**

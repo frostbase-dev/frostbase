@@ -4,11 +4,11 @@ import { count, eq, and } from 'drizzle-orm';
 import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
 import { z } from 'zod';
-import migrations from './migrations';
-import * as schema from './db/schema';
-import { gatewaySubs } from './db/schema';
-import { corsHeadersFor, drainUnusedBody } from './access';
-import { replicaName } from './replication';
+import migrations from './migrations.js';
+import * as schema from './db/schema.js';
+import { gatewaySubs } from './db/schema.js';
+import { corsHeadersFor, drainUnusedBody } from './access.js';
+import { replicaName } from './replication.js';
 import {
 	gatewayClientFrameSchema,
 	serverFrameSchema,
@@ -20,10 +20,10 @@ import {
 	type RemoteSubscribeResult,
 	type ServerFrame,
 	type ShardAddress,
-} from './schemas';
-import type { DbAgent } from './agent';
-import type { DbCollection } from './collection';
-import type { DbTable } from './table';
+} from './schemas.js';
+import type { DbAgent } from './agent.js';
+import type { DbCollection } from './collection.js';
+import type { DbTable } from './table.js';
 
 /**
  * One client WebSocket for the whole database: N live queries across any mix

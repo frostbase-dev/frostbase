@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { ROUTES, gateOperatorRoutes, routeAccess } from './route-access';
+import { ROUTES, gateOperatorRoutes, routeAccess } from './route-access.js';
 
 /**
  * The gate only ever runs in deployments we do not operate (a consumer's

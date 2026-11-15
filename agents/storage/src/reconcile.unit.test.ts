@@ -5,7 +5,7 @@ import {
 	reconcileActions,
 	type ReconcileAction,
 	type ReconcileEntry,
-} from './reconcile';
+} from './reconcile.js';
 
 /**
  * The merge join is pinned HERE rather than in e2e for a structural reason:

@@ -1,4 +1,4 @@
-import { logEntrySchema, MAX_LOG_ROWS, REPLICATION_PULL_CHUNK, type LogEntry } from './schemas';
+import { logEntrySchema, MAX_LOG_ROWS, REPLICATION_PULL_CHUNK, type LogEntry } from './schemas.js';
 
 /**
  * The replication substrate's shared plumbing:
@@ -192,7 +192,7 @@ export function serveRepPull(
 	sql: SqlStorage,
 	input: RepPullInput,
 	epoch: number,
-): import('./schemas').RepPullResult {
+): import('./schemas.js').RepPullResult {
 	registerReplica(sql, input.replicaId, input.region, input.since);
 
 	if (!canServeSince(sql, input.since)) return { resync: true, epoch };

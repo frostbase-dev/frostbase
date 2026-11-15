@@ -1,4 +1,4 @@
-import type { CollectionValidator, FieldRule } from './schemas';
+import type { CollectionValidator, FieldRule } from './schemas.js';
 
 /**
  * Rules-lite document validation: a declarative per-collection validator

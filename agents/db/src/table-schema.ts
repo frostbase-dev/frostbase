@@ -1,4 +1,4 @@
-import type { ColumnType, TableColumn } from './schemas';
+import type { ColumnType, TableColumn } from './schemas.js';
 
 /**
  * Pure table-schema module: row validation against declared columns, default

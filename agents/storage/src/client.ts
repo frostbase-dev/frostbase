@@ -1,4 +1,4 @@
-import { SIGNED_URL_MAX_TTL_SECONDS, type SignedMethod } from './signing';
+import { SIGNED_URL_MAX_TTL_SECONDS, type SignedMethod } from './signing.js';
 
 /**
  * Thin isomorphic client for the storage agent (browsers and Node >= 22). No

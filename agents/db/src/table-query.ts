@@ -1,6 +1,6 @@
-import type { CompiledQuery, DecodedCursor } from './query';
-import { quoteIdent } from './table-schema';
-import type { AggregateRequest, Query, TableColumn, WhereClause } from './schemas';
+import type { CompiledQuery, DecodedCursor } from './query.js';
+import { quoteIdent } from './table-schema.js';
+import type { AggregateRequest, Query, TableColumn, WhereClause } from './schemas.js';
 
 /**
  * Pure table-query compiler: the SAME parsed Query the document engine uses,

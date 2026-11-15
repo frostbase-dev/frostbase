@@ -9,8 +9,8 @@ import {
 	selectList,
 	toSqlValue,
 	validateRow,
-} from './table-schema';
-import { tableColumnsSchema, type TableColumn } from './schemas';
+} from './table-schema.js';
+import { tableColumnsSchema, type TableColumn } from './schemas.js';
 
 /**
  * The DDL planner and the row validator are what stand between user input

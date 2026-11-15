@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/cloudflare';
 import { z } from 'zod';
-import { restoreRequestSchema, type BookmarkOutcome, type RestoreOutcome } from './schemas';
+import { restoreRequestSchema, type BookmarkOutcome, type RestoreOutcome } from './schemas.js';
 
 /**
  * Point-in-time recovery over the platform's DO SQLite bookmarks, shared by

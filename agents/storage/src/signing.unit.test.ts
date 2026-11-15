@@ -23,7 +23,7 @@ import {
 	type SignatureSubject,
 	type SigningSecret,
 	type UploadEnvelope,
-} from './signing';
+} from './signing.js';
 
 const HELD: SigningSecret = { version: 3, secret: 'a'.repeat(64) };
 const NOW = 1_760_000_000;

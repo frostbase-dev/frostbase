@@ -9,16 +9,16 @@ import {
 	type Query,
 	type ServerFrame,
 	type ShardAddress,
-} from './schemas';
-import { orderComparator } from './query';
-import { createRemoteConfig, type RemoteConfigOptions } from './remote-config-client';
+} from './schemas.js';
+import { orderComparator } from './query.js';
+import { createRemoteConfig, type RemoteConfigOptions } from './remote-config-client.js';
 
 export type {
 	RemoteConfigClient,
 	RemoteConfigFetchResult,
 	RemoteConfigOptions,
 	RemoteConfigValue,
-} from './remote-config-client';
+} from './remote-config-client.js';
 
 /**
  * Thin isomorphic client for the db agent (browsers and Node >= 22, which

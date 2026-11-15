@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parseShardRole, pickSubscribeSibling, replicaName } from './replication';
-import { regionHint, DEFAULT_REGION, REGION_HINTS } from './region';
-import { socketReportStep } from './schemas';
+import { parseShardRole, pickSubscribeSibling, replicaName } from './replication.js';
+import { regionHint, DEFAULT_REGION, REGION_HINTS } from './region.js';
+import { socketReportStep } from './schemas.js';
 
 /**
  * The pure halves of the replication substrate: role parsing (what makes an

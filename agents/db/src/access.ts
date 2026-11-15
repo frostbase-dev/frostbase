@@ -1,6 +1,6 @@
-import type { ProjectJwtVerifier } from './jwt';
-import { hasPermission } from './rules';
-import type { AccessMode } from './schemas';
+import type { ProjectJwtVerifier } from './jwt.js';
+import { hasPermission } from './rules.js';
+import type { AccessMode } from './schemas.js';
 
 /**
  * The access gate and CORS policy shared by DbCollection and DbTable -

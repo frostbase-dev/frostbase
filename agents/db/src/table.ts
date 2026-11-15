@@ -2,12 +2,12 @@
 import { getAgentByName, type AgentNamespace } from 'agents';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
 import { z } from 'zod';
-import migrations from './migrations';
-import { checkAccess, corsHeadersFor, drainUnusedBody, withCors } from './access';
-import { primaryLocation } from './colo';
-import { collectionMeta } from './db/schema';
-import { ProjectJwtVerifier } from './jwt';
-import { LiveShard, type LiveGate } from './live';
+import migrations from './migrations.js';
+import { checkAccess, corsHeadersFor, drainUnusedBody, withCors } from './access.js';
+import { primaryLocation } from './colo.js';
+import { collectionMeta } from './db/schema.js';
+import { ProjectJwtVerifier } from './jwt.js';
+import { LiveShard, type LiveGate } from './live.js';
 import {
 	appendLog,
 	clearReplicas,
@@ -25,11 +25,11 @@ import {
 	writeReplicaMeta,
 	type ReplicaMeta,
 	type ReplicaRole,
-} from './replication';
-import { getPath, encodeCursor, decodeCursor, type DecodedCursor } from './query';
-import { shardBookmarkForTime, shardCurrentBookmark, shardRestoreTo } from './pitr';
-import { hasPermission } from './rules';
-import { prepareTableSql } from './table-sql';
+} from './replication.js';
+import { getPath, encodeCursor, decodeCursor, type DecodedCursor } from './query.js';
+import { shardBookmarkForTime, shardCurrentBookmark, shardRestoreTo } from './pitr.js';
+import { hasPermission } from './rules.js';
+import { prepareTableSql } from './table-sql.js';
 import {
 	applyColumnDefaults,
 	isDuplicateColumnError,
@@ -40,8 +40,8 @@ import {
 	toSqlValue,
 	uniqueViolationColumn,
 	validateRow,
-} from './table-schema';
-import { compileTableAggregate, compileTableQuery } from './table-query';
+} from './table-schema.js';
+import { compileTableAggregate, compileTableQuery } from './table-query.js';
 import { v7 as uuidv7 } from 'uuid';
 import {
 	aggregateRequestSchema,
@@ -81,8 +81,8 @@ import {
 	type TableConfig,
 	type TableMeta,
 	type TableSqlResult,
-} from './schemas';
-import { isDurableObjectReset, type DbAgent } from './agent';
+} from './schemas.js';
+import { isDurableObjectReset, type DbAgent } from './agent.js';
 
 /**
  * One SQL table: typed columns over a physical SQLite table NAMED AFTER the

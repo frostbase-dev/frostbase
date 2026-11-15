@@ -3,8 +3,14 @@
 		"target": "es2024",
 		"lib": ["es2024"],
 		"jsx": "react-jsx",
-		"module": "es2022",
-		"moduleResolution": "node",
+		/*
+		 * The published package runs directly in Node (the `client`/`admin`
+		 * entrypoints), not only through a bundler, so relative imports must
+		 * carry `.js` extensions to resolve at runtime. `nodenext` makes tsc
+		 * enforce that instead of leaving it to fail on the consumer's machine.
+		 */
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,

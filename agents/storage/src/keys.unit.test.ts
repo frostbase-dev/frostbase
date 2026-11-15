@@ -6,7 +6,7 @@ import {
 	r2BucketPrefix,
 	r2ObjectKey,
 	r2ProjectPrefix,
-} from './keys';
+} from './keys.js';
 
 test('accepts ordinary keys, nested paths, and unicode', () => {
 	for (const key of [

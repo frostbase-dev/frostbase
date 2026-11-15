@@ -1,5 +1,5 @@
 import { drizzle, type SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
-import type { TableSqlResponse, TableSqlResult } from './schemas';
+import type { TableSqlResponse, TableSqlResult } from './schemas.js';
 
 /**
  * The official drizzle driver for Frostbase SQL tables - a thin shim

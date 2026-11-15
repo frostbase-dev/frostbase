@@ -3,11 +3,11 @@ import { Agent, type AgentContext } from 'agents';
 import { asc, count, eq, lt } from 'drizzle-orm';
 import { drizzle, type DrizzleSqliteDODatabase } from 'drizzle-orm/durable-sqlite';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
-import { drainUnusedBody } from './access';
-import * as schema from './db/schema';
-import { buckets, uploads, type BucketRecord, type UploadRecord } from './db/schema';
-import { r2BucketPrefix, r2ObjectKey, r2ProjectPrefix } from './keys';
-import migrations from './migrations';
+import { drainUnusedBody } from './access.js';
+import * as schema from './db/schema.js';
+import { buckets, uploads, type BucketRecord, type UploadRecord } from './db/schema.js';
+import { r2BucketPrefix, r2ObjectKey, r2ProjectPrefix } from './keys.js';
+import migrations from './migrations.js';
 import {
 	DEMO_PROJECT_PATTERN,
 	bucketConfigInputSchema,
@@ -16,9 +16,9 @@ import {
 	type AccessMode,
 	type BucketConfig,
 	type BucketConfigInput,
-} from './schemas';
-import type { BucketStats, StorageBucket } from './bucket';
-import { mintSecret, publicServeOrigin, type SigningSecret } from './signing';
+} from './schemas.js';
+import type { BucketStats, StorageBucket } from './bucket.js';
+import { mintSecret, publicServeOrigin, type SigningSecret } from './signing.js';
 
 /**
  * StorageAgent - one Durable Object per project: the bucket registry and

@@ -10,8 +10,13 @@ import {
 	isWindowed,
 	matchesQuery,
 	orderComparator,
-} from './query';
-import { aggregateRequestSchema, querySchema, type AggregateRequest, type Query } from './schemas';
+} from './query.js';
+import {
+	aggregateRequestSchema,
+	querySchema,
+	type AggregateRequest,
+	type Query,
+} from './schemas.js';
 
 /**
  * The SQL compiler and the JS matcher are derived from one parsed Query and

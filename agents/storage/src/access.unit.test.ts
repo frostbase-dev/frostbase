@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { checkAccess, hasPermission } from './access';
-import type { AccessMode } from './schemas';
+import { checkAccess, hasPermission } from './access.js';
+import type { AccessMode } from './schemas.js';
 
 /**
  * This gate is a COPY of the db agent's, so the modes must behave identically

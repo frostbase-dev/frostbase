@@ -11,7 +11,7 @@ import {
 	REMOTE_CONFIG_COLUMNS,
 	REMOTE_CONFIG_TABLE,
 	tableColumnsSchema,
-} from './schemas';
+} from './schemas.js';
 
 /**
  * Remote Config's pure parts: the value/type check, the pending rule the whole
