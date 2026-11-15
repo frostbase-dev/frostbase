@@ -1,6 +1,6 @@
-﻿{
+{
 	"name": "@frostbase-dev/storage",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "Object storage on Cloudflare R2 - buckets of files with per-bucket access modes, an object index with keyset paging, one Durable Object orchestrator per project - the storage primitive behind Frostbase.",
 	"license": "Apache-2.0",
 	"type": "module",

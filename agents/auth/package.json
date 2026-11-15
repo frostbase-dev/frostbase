@@ -1,6 +1,6 @@
 {
 	"name": "@frostbase-dev/auth",
-	"version": "0.7.4",
+	"version": "0.7.5",
 	"description": "Better Auth on a Cloudflare Durable Object, one instance per project - the auth primitive behind Frostbase.",
 	"license": "Apache-2.0",
 	"type": "module",
