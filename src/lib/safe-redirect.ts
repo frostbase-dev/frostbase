@@ -17,7 +17,10 @@ export function safeNext(value: string | null, fallback = '/dashboard'): string 
 	if (!value || !value.startsWith('/')) return fallback;
 	// Backslashes and control characters have no business in a path we hand
 	// out, and each is a parser disagreement waiting for the next browser.
-	if (/[\\\u0000-\u001f\u007f]/.test(value)) return fallback;
+	for (const char of value) {
+		const code = char.charCodeAt(0);
+		if (char === '\\' || code < 0x20 || code === 0x7f) return fallback;
+	}
 	let resolved: URL;
 	try {
 		resolved = new URL(value, PROBE_ORIGIN);
