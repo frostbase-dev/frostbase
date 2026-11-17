@@ -1,7 +1,7 @@
 import { activeOrg } from '$lib/console';
 import { isCrawler } from '$lib/server/crawler';
 import { recordDemoProject } from '$lib/server/demo-log';
-import { listProjects } from '$lib/server/registry';
+import { listProjects, operatorProjectScope } from '$lib/server/registry';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -50,14 +50,17 @@ export const load: PageServerLoad = async ({ cookies, locals, platform, request 
 		redirect(307, `/dashboard/${projectId}`);
 	}
 
-	// The overview lists the ACTIVE org's projects (plus unowned rows every
-	// operator may see); accounts with no orgs - agents from before
-	// organizations - keep the unscoped list they always had.
+	// The overview lists the ACTIVE org's projects, plus unowned rows for the
+	// console admin. An account with no org gets no org rows - never the
+	// unscoped registry, which on an open-signup console is every tenant's.
 	// The sidebar's org data comes from the (account) layout load; this page
 	// adds the active org's project list and the invitation banner.
 	const identity = locals.consoleIdentity;
 	const active = identity ? activeOrg(identity) : null;
-	const projects = await listProjects(platform, active ? [active.id] : undefined);
+	const projects = await listProjects(
+		platform,
+		operatorProjectScope(identity ?? null, active ? [active.id] : [])
+	);
 
 	return {
 		projects,

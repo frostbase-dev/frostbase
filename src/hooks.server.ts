@@ -11,7 +11,12 @@ import { agentFetcher, agentUrl, serverError } from '$lib/server/agents';
 import { isDemoMode, isDemoProjectId, resolveConsoleIdentity } from '$lib/server/console';
 import { guardConsoleClaim } from '$lib/server/console-setup';
 import { isServiceKeySurface, verifyServiceKey } from '$lib/server/service-keys';
-import { getProjectOwnership, projectExists, type ProjectOwnership } from '$lib/server/registry';
+import {
+	getProjectOwnership,
+	mayReachUnownedProjects,
+	projectExists,
+	type ProjectOwnership
+} from '$lib/server/registry';
 import { handleErrorWithSentry, initCloudflareSentryHandle, sentryHandle } from '@sentry/sveltekit';
 import { redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -548,11 +553,14 @@ const consoleGuardHandle: Handle = async ({ event, resolve }) => {
 			if (!ownership.registered) return noSuchProject(access.kind);
 
 			// Owned rows require membership in the owning org. Rows with a null
-			// org predate ownership and stay visible to any operator - the
-			// self-hosted contract, where every operator is the same person.
+			// org predate ownership (or were released by a console reset) and
+			// belong to the console admin alone - "any operator" stopped meaning
+			// "the same person" once sign-ups could be open.
 			if (ownership.orgId) {
 				const isMember = identity.organizations.some((org) => org.id === ownership.orgId);
 				if (!isMember) return noSuchProject(access.kind);
+			} else if (!mayReachUnownedProjects(identity)) {
+				return noSuchProject(access.kind);
 			}
 		}
 		return resolve(event);

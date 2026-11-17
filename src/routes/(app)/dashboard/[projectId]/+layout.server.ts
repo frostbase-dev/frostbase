@@ -3,6 +3,7 @@ import {
 	demoBranchContext,
 	getBranchContext,
 	listProjects,
+	operatorProjectScope,
 	rememberDemoBranch
 } from '$lib/server/registry';
 import type { LayoutServerLoad } from './$types';
@@ -36,10 +37,7 @@ export const load: LayoutServerLoad = async ({ cookies, params, platform, locals
 		// visitors, and the installation's project registry must never appear
 		// in their page data.
 		locals.consoleUser
-			? listProjects(
-					platform,
-					locals.consoleIdentity?.organizations.map((org) => org.id)
-				)
+			? listProjects(platform, operatorProjectScope(locals.consoleIdentity ?? null))
 			: Promise.resolve(null)
 	]);
 

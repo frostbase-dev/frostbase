@@ -7,13 +7,14 @@ import {
 } from '$lib/console';
 import { AGENT_REGISTRY, type AppAgentEntry } from '$lib/agent-registry';
 import type { RegistryProject } from '$lib/agents';
+import type { ProjectScope } from './project-scope';
 import { getDb } from '$lib/server/db';
 import { project, projectAgent } from '$lib/server/db/schema';
 import { deleteProjectServiceKeys } from '$lib/server/service-keys';
 import { requireAgent } from '$lib/server/agents';
 import { projectIdSchema } from '$lib/schemas/auth';
 import type { Cookies } from '@sveltejs/kit';
-import { and, asc, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, isNull, or, type SQL } from 'drizzle-orm';
 import { z } from 'zod';
 
 /**
@@ -90,29 +91,34 @@ function toDto(row: {
 	};
 }
 
+export { mayReachUnownedProjects, operatorProjectScope, type ProjectScope } from './project-scope';
+
 /**
  * Lists the installation's projects, oldest first. Returns an empty list
  * rather than throwing when the database cannot be reached, so a first-run
  * console renders its empty state instead of an error page.
  *
- * `orgIds` scopes the list to rows those organizations own PLUS unowned
- * (org_id NULL) legacy/self-hosted rows, which every operator may see.
- * Omitting it returns everything - for callers that predate ownership or
- * genuinely need the whole registry (the erase fan-out, tests).
+ * `scope` limits the list to rows the given organizations own, plus unowned
+ * (org_id NULL) rows when `includeUnowned` is set - see `operatorProjectScope`
+ * for who gets them. Omitting `scope` returns everything, and only callers
+ * that genuinely need the whole registry may do that (the erase fan-out,
+ * tests) - never an operator-facing list.
  */
 export async function listProjects(
 	platform: App.Platform | undefined,
-	orgIds?: string[]
+	scope?: ProjectScope
 ): Promise<RegistryProject[]> {
 	try {
+		let where: SQL | undefined;
+		if (scope) {
+			const parts: SQL[] = [];
+			if (scope.orgIds.length) parts.push(inArray(project.orgId, scope.orgIds));
+			if (scope.includeUnowned) parts.push(isNull(project.orgId));
+			if (!parts.length) return [];
+			where = or(...parts);
+		}
 		const db = await getDb(platform);
-		const scope =
-			orgIds === undefined
-				? undefined
-				: orgIds.length
-					? or(isNull(project.orgId), inArray(project.orgId, orgIds))
-					: isNull(project.orgId);
-		const rows = await db.select().from(project).where(scope).orderBy(asc(project.createdAt));
+		const rows = await db.select().from(project).where(where).orderBy(asc(project.createdAt));
 		return rows.map(toDto);
 	} catch (cause) {
 		// Degrading to "no projects" is right for a first run but wrong to do
