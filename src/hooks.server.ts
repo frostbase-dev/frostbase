@@ -22,6 +22,7 @@ import { redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import type { AppAgentEntry } from '$lib/agent-registry';
 import type { Handle } from '@sveltejs/kit';
+import { movedLocation } from '$lib/safe-redirect';
 
 let platform: App.Platform;
 
@@ -669,10 +670,10 @@ const domainMoveHandle: Handle = async ({ event, resolve }) => {
 	const moved = env?.MOVED_FROM_HOSTS?.split(',').map((host) => host.trim().toLowerCase());
 	if (!canonical || !moved?.includes(event.url.hostname.toLowerCase())) return resolve(event);
 	if (/^\/(api|agents)(\/|$)/.test(event.url.pathname)) return resolve(event);
-	const target = new URL(`${event.url.pathname}${event.url.search}`, canonical);
+	const target = movedLocation(event.url.pathname, event.url.search, canonical);
 	// 308 keeps the method for the odd form POST; navigations get a plain 301.
 	const status = event.request.method === 'GET' || event.request.method === 'HEAD' ? 301 : 308;
-	return new Response(null, { status, headers: { location: target.href } });
+	return new Response(null, { status, headers: { location: target } });
 };
 
 export const handle = sequence(

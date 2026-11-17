@@ -1,13 +1,8 @@
 import { consoleAuthConfig, consoleOwnerExists, getConsoleIdentity } from '$lib/server/console';
 import { CONSOLE_SETUP_COOKIE, consoleSetupState } from '$lib/server/console-setup';
+import { safeNext } from '$lib/safe-redirect';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-
-/** Same-origin paths only - never let ?next= drive an open redirect. */
-function safeNext(value: string | null): string {
-	if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard';
-	return value;
-}
 
 /**
  * The console sign-in page. Sign-in, first-run owner claim, and - when the
