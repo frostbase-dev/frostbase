@@ -1,7 +1,8 @@
 import { activeOrg } from '$lib/console';
+import { getConsoleIdentity } from '$lib/server/console';
 import { isCrawler } from '$lib/server/crawler';
 import { recordDemoProject } from '$lib/server/demo-log';
-import { listProjects } from '$lib/server/registry';
+import { listProjects, operatorProjectScope } from '$lib/server/registry';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -25,7 +26,7 @@ const PROJECT_PATTERN = /^demo-[a-f0-9]{12,20}$/;
  * org - made "All projects" bounce straight back and left the org surfaces
  * unreachable.
  */
-export const load: PageServerLoad = async ({ cookies, locals, platform, request }) => {
+export const load: PageServerLoad = async ({ cookies, locals, platform, request, url }) => {
 	if (locals.demoMode && !locals.consoleUser) {
 		// A crawler is an anonymous visitor, so it used to be handed a real demo
 		// project - one Durable Object and one all-time counter row per crawl,
@@ -50,17 +51,36 @@ export const load: PageServerLoad = async ({ cookies, locals, platform, request 
 		redirect(307, `/dashboard/${projectId}`);
 	}
 
-	// The overview lists the ACTIVE org's projects (plus unowned rows every
-	// operator may see); accounts with no orgs - agents from before
-	// organizations - keep the unscoped list they always had.
+	// The overview lists the ACTIVE org's projects, plus unowned rows for the
+	// console admin. An account with no org gets no org rows - never the
+	// unscoped registry, which on an open-signup console is every tenant's.
 	// The sidebar's org data comes from the (account) layout load; this page
 	// adds the active org's project list and the invitation banner.
 	const identity = locals.consoleIdentity;
 	const active = identity ? activeOrg(identity) : null;
-	const projects = await listProjects(platform, active ? [active.id] : undefined);
+	const projects = await listProjects(
+		platform,
+		operatorProjectScope(identity ?? null, active ? [active.id] : [])
+	);
 
-	return {
-		projects,
-		pendingInvitations: identity?.pendingInvitations ?? []
-	};
+	// An invite link (?invitation=<id>) is how an account with an unverified
+	// address - every account on a claimed console without mail - reaches its
+	// invitation: the guard's identity lists invitations only for verified
+	// addresses, because the id is what accepts one. Holding the link is the
+	// proof, so resolve that one invitation for this session.
+	let pendingInvitations = identity?.pendingInvitations ?? [];
+	const linked = url.searchParams.get('invitation');
+	if (identity && linked && !pendingInvitations.some((entry) => entry.id === linked)) {
+		const withLinked = await getConsoleIdentity(
+			platform,
+			url.origin,
+			request.headers.get('cookie'),
+			request.headers.get('authorization'),
+			request.headers.get('cf-connecting-ip'),
+			linked
+		);
+		pendingInvitations = withLinked?.pendingInvitations ?? pendingInvitations;
+	}
+
+	return { projects, pendingInvitations };
 };

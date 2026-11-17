@@ -409,7 +409,8 @@
 					{:else if signingUp && open}
 						Your projects, your data, on Cloudflare's edge. Verification email included.
 					{:else if signingUp}
-						Invited to an organization? Register with the invited email address.
+						Invited to an organization? Register with the invited email address, then open your
+						invite link to accept.
 					{:else}
 						Sign in to manage your projects.
 					{/if}

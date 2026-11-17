@@ -251,7 +251,10 @@ export async function resolveConsoleIdentity(
 	origin: string,
 	cookie: string | null,
 	authorization: string | null = null,
-	clientIp: string | null = null
+	clientIp: string | null = null,
+	/** An invitation id the caller holds (from the invite link). An account
+	 * whose email is unverified is shown only the invitation it holds. */
+	invitationId: string | null = null
 ): Promise<ConsoleIdentityResult> {
 	if (!cookie && !authorization) return ANONYMOUS;
 
@@ -260,7 +263,16 @@ export async function resolveConsoleIdentity(
 	const agent = requireAuthAgent(platform);
 	const attempt = () =>
 		agent
-			.fetch(agentUrl(origin, CONSOLE_PROJECT_ID, '/console/me'), { method: 'GET', headers })
+			.fetch(
+				agentUrl(
+					origin,
+					CONSOLE_PROJECT_ID,
+					invitationId
+						? `/console/me?invitation=${encodeURIComponent(invitationId)}`
+						: '/console/me'
+				),
+				{ method: 'GET', headers }
+			)
 			.catch((cause: unknown) => {
 				Sentry.captureException(cause, {
 					level: 'error',
@@ -346,9 +358,17 @@ export async function getConsoleIdentity(
 	origin: string,
 	cookie: string | null,
 	authorization: string | null = null,
-	clientIp: string | null = null
+	clientIp: string | null = null,
+	invitationId: string | null = null
 ): Promise<ConsoleIdentity | null> {
-	const resolved = await resolveConsoleIdentity(platform, origin, cookie, authorization, clientIp);
+	const resolved = await resolveConsoleIdentity(
+		platform,
+		origin,
+		cookie,
+		authorization,
+		clientIp,
+		invitationId
+	);
 	return resolved.status === 'ok' ? resolved.identity : null;
 }
 

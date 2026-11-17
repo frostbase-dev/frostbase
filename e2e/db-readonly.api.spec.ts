@@ -15,9 +15,11 @@ import {
 	dbDocumentPath,
 	dbDocumentsPath,
 	dbQueryPath,
+	dbRowPath,
 	dbRowsPath,
 	uniqueEmail
 } from './helpers';
+import { LiveSocket, WEB_WS } from './live-socket';
 
 /**
  * The `none` access mode - the closed one.
@@ -212,6 +214,155 @@ test.describe('db agent (the none access mode)', () => {
 		expect(operator.ok(), await operator.text()).toBeTruthy();
 		const { docs } = await operator.json();
 		expect(docs.some((doc: { id: string }) => doc.id === `report-${run}`)).toBeTruthy();
+	});
+
+	test('a closed collection or table cannot be read through a live subscription', async ({
+		request,
+		baseURL
+	}) => {
+		const collection = `livein-${run}`;
+		const table = `liveint-${run}`;
+		const provisionCollection = await request.put(dbAdminCollectionPath(DB_PROJECT, collection), {
+			data: { readAccess: 'none', writeAccess: 'public', replication: 'off' }
+		});
+		expect(provisionCollection.ok(), await provisionCollection.text()).toBeTruthy();
+		const declareTable = await request.put(dbAdminTablePath(DB_PROJECT, table), {
+			data: {
+				readAccess: 'none',
+				writeAccess: 'auth',
+				replication: 'off',
+				columns: [{ name: 'message', type: 'text' }]
+			}
+		});
+		expect(declareTable.ok(), await declareTable.text()).toBeTruthy();
+
+		const seedDoc = await request.put(adminDocumentPath(collection, 'secret-doc'), {
+			data: { data: { message: 'operator eyes only' } }
+		});
+		expect(seedDoc.ok(), await seedDoc.text()).toBeTruthy();
+		const seedRow = await request.put(dbAdminTableRowPath(DB_PROJECT, table, 'secret-row'), {
+			data: { data: { message: 'operator eyes only' } }
+		});
+		expect(seedRow.ok(), await seedRow.text()).toBeTruthy();
+
+		// The socket re-implements the read gate rather than calling
+		// checkAccess, so it is attacked with a real token on both doors: the
+		// one-socket gateway and the table's own direct socket.
+		const token = await projectUserToken(baseURL, 'readonly-live');
+		const gateway = await LiveSocket.connect(
+			`${WEB_WS}/agents/db-agent/${DB_PROJECT}/realtime?cfb-region=weur`
+		);
+		const direct = await LiveSocket.connect(
+			`${WEB_WS}/agents/db-agent/${DB_PROJECT}/tables/${table}/subscribe`
+		);
+		try {
+			gateway.send({
+				type: 'subscribe',
+				id: 'c1',
+				shard: { kind: 'collection', name: collection },
+				query: {},
+				token
+			});
+			gateway.send({
+				type: 'subscribe',
+				id: 't1',
+				shard: { kind: 'table', name: table },
+				query: {},
+				token
+			});
+			direct.send({ type: 'subscribe', id: 's1', query: {}, token });
+
+			for (const [socket, id] of [
+				[gateway, 'c1'],
+				[gateway, 't1'],
+				[direct, 's1']
+			] as const) {
+				const refused = await socket.next(
+					(frame) => frame.id === id && (frame.type === 'error' || frame.type === 'snapshot'),
+					`the answer to ${id}`
+				);
+				expect(refused.type, `${id} must be refused, not snapshotted`).toBe('error');
+				expect(refused.code).toBe('unauthorized');
+			}
+		} finally {
+			gateway.close();
+			direct.close();
+		}
+	});
+
+	test('an ingest table or collection cannot be read back through a write', async ({
+		request,
+		baseURL
+	}) => {
+		const table = `inbox-${run}`;
+		const collection = `inboxc-${run}`;
+		const declare = await request.put(dbAdminTablePath(DB_PROJECT, table), {
+			data: {
+				readAccess: 'none',
+				writeAccess: 'auth',
+				replication: 'off',
+				columns: [{ name: 'message', type: 'text' }]
+			}
+		});
+		expect(declare.ok(), await declare.text()).toBeTruthy();
+		const provision = await request.put(dbAdminCollectionPath(DB_PROJECT, collection), {
+			data: { readAccess: 'none', writeAccess: 'auth', replication: 'off' }
+		});
+		expect(provision.ok(), await provision.text()).toBeTruthy();
+
+		// Somebody else's submissions - the thing the attacker is after.
+		const seedRow = await request.put(dbAdminTableRowPath(DB_PROJECT, table, 'victim-row'), {
+			data: { data: { message: 'someone else wrote this' } }
+		});
+		expect(seedRow.ok(), await seedRow.text()).toBeTruthy();
+		const seedDoc = await request.put(adminDocumentPath(collection, 'victim-doc'), {
+			data: { data: { message: 'someone else wrote this' } }
+		});
+		expect(seedDoc.ok(), await seedDoc.text()).toBeTruthy();
+
+		const token = await projectUserToken(baseURL, 'readonly-readback');
+		const anon = await anonymousContext(baseURL);
+		try {
+			const authed = { authorization: `Bearer ${token}` };
+
+			// A write is allowed, and a no-op UPDATE over every row used to answer
+			// with every row - RETURNING is appended to all DML.
+			const dump = await anon.post(sqlPath(table), {
+				headers: authed,
+				data: { sql: `UPDATE "${table}" SET message = message` }
+			});
+			expect(dump.ok(), await dump.text()).toBeTruthy();
+			const dumped = (await dump.json()).result;
+			expect(dumped.results).toEqual([]);
+			expect(dumped.raw).toEqual([]);
+			expect(JSON.stringify(dumped)).not.toContain('someone else wrote this');
+
+			// A SELECT hidden in a write batch is judged as the read it is.
+			const smuggled = await anon.post(sqlPath(table), {
+				headers: authed,
+				data: {
+					batch: [
+						{ sql: `SELECT message FROM "${table}"` },
+						{ sql: `UPDATE "${table}" SET message = message WHERE 0` }
+					]
+				}
+			});
+			expect(smuggled.status()).toBe(403);
+
+			// The typed update merges over fields the caller never sent; an empty
+			// PATCH must not hand them back.
+			for (const [label, path] of [
+				['row', dbRowPath(DB_PROJECT, table, 'victim-row')],
+				['document', dbDocumentPath(DB_PROJECT, collection, 'victim-doc')]
+			] as const) {
+				const patched = await anon.patch(path, { headers: authed, data: {} });
+				expect(patched.ok(), `${label}: ${await patched.text()}`).toBeTruthy();
+				const body = await patched.json();
+				expect(body, label).toEqual({ id: label === 'row' ? 'victim-row' : 'victim-doc' });
+			}
+		} finally {
+			await anon.dispose();
+		}
 	});
 
 	test('raw SQL cannot write a read-only table', async ({ request, baseURL }) => {

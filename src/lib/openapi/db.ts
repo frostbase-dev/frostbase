@@ -5,6 +5,8 @@ import {
 	dbCollectionConfigSchema,
 	dbCreateRequestSchema,
 	dbDocumentSchema,
+	dbWriteAckSchema,
+	dbWriteResultSchema,
 	dbFieldRuleSchema,
 	dbImportReportSchema,
 	dbOverviewSchema,
@@ -100,6 +102,8 @@ export const dbOpenApi: AgentOpenApiModule = {
 	schemas: [
 		dbQuerySchema,
 		dbDocumentSchema,
+		dbWriteAckSchema,
+		dbWriteResultSchema,
 		dbQueryResultSchema,
 		dbCreateRequestSchema,
 		dbWriteRequestSchema,
@@ -162,7 +166,10 @@ export const dbOpenApi: AgentOpenApiModule = {
 				security: PUBLIC_SECURITY,
 				requestBody: jsonBody(dbWriteRequestSchema, 'The full replacement data.'),
 				responses: {
-					'200': jsonResponse(dbDocumentSchema, 'The updated document.'),
+					'200': jsonResponse(
+						dbWriteResultSchema,
+						'The updated document, or only its id when the caller may not read it back.'
+					),
 					'404': { description: 'No such document.' }
 				}
 			},
@@ -173,7 +180,10 @@ export const dbOpenApi: AgentOpenApiModule = {
 				security: PUBLIC_SECURITY,
 				requestBody: jsonBody(dbWriteRequestSchema, 'Fields to shallow-merge.'),
 				responses: {
-					'200': jsonResponse(dbDocumentSchema, 'The updated document.'),
+					'200': jsonResponse(
+						dbWriteResultSchema,
+						'The updated document, or only its id when the caller may not read it back.'
+					),
 					'404': { description: 'No such document.' }
 				}
 			},
@@ -267,7 +277,10 @@ export const dbOpenApi: AgentOpenApiModule = {
 				security: PUBLIC_SECURITY,
 				requestBody: jsonBody(dbWriteRequestSchema, 'The full replacement column map.'),
 				responses: {
-					'200': jsonResponse(dbDocumentSchema, 'The updated row.'),
+					'200': jsonResponse(
+						dbWriteResultSchema,
+						'The updated row, or only its id when the caller may not read it back.'
+					),
 					'400': { description: 'The row failed the declared schema.' },
 					'404': { description: 'No such row.' },
 					'409': { description: 'Unique-column conflict.' }
@@ -280,7 +293,10 @@ export const dbOpenApi: AgentOpenApiModule = {
 				security: PUBLIC_SECURITY,
 				requestBody: jsonBody(dbWriteRequestSchema, 'Columns to set; the rest keep their values.'),
 				responses: {
-					'200': jsonResponse(dbDocumentSchema, 'The updated row.'),
+					'200': jsonResponse(
+						dbWriteResultSchema,
+						'The updated row, or only its id when the caller may not read it back.'
+					),
 					'400': { description: 'The merged row failed the declared schema.' },
 					'404': { description: 'No such row.' },
 					'409': { description: 'Unique-column conflict.' }
@@ -331,7 +347,7 @@ export const dbOpenApi: AgentOpenApiModule = {
 				tags: [DB_TAG],
 				summary: 'Run single-table SQL (ORM-grade, D1-shaped)',
 				description:
-					'One SELECT/INSERT/UPDATE/DELETE (or an atomic `batch`) over this table alone - what `@frostbase-dev/db/drizzle` drives. DML gains automatic RETURNING and feeds the change log and live queries. ALWAYS requires a project JWT (public modes never open raw SQL); owner-scoped tables refuse it. Results carry objects plus `raw` value arrays with `columns` order for drivers. SELECTs serve from region replicas when replication is on.',
+					'One SELECT/INSERT/UPDATE/DELETE (or an atomic `batch`) over this table alone - what `@frostbase-dev/db/drizzle` drives. DML gains automatic RETURNING and feeds the change log and live queries; on a table whose read mode the caller does not pass (`none`, `owner`, or a missing read permission) writes still land but return no rows. ALWAYS requires a project JWT (public modes never open raw SQL); owner-scoped tables refuse it. Results carry objects plus `raw` value arrays with `columns` order for drivers. SELECTs serve from region replicas when replication is on.',
 				parameters: [tableParam],
 				security: PUBLIC_SECURITY,
 				requestBody: {

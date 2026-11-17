@@ -178,7 +178,12 @@ test.describe('db agent (SQL endpoint)', () => {
 				['SELECT token_exp FROM subscriptions', 'internal storage'],
 				['DROP TABLE ' + table, 'SELECT, INSERT'],
 				['SELECT 1; SELECT 2', 'one statement'],
-				['INSERT INTO elsewhere (id) VALUES (?)', 'must target']
+				['INSERT INTO elsewhere (id) VALUES (?)', 'must target'],
+				// Never terminates on its own, inside a single-threaded shard.
+				[
+					'WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT count(*) FROM c',
+					'recursive CTEs'
+				]
 			] as const) {
 				const refusedSql = await anon.post(sqlPath(table), {
 					headers: asUser,

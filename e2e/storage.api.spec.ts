@@ -410,6 +410,11 @@ test.describe('storage agent (S1)', () => {
 				{ key: `${run}/page.html`, type: 'text/html', disposition: 'attachment' },
 				{ key: `${run}/vector.svg`, type: 'image/svg+xml', disposition: 'attachment' },
 				{ key: `${run}/feed.xml`, type: 'application/xml', disposition: 'attachment' },
+				// Any +xml subtype renders as an XML document whatever its top-level
+				// type, so an XHTML body behind a "video" label is still script.
+				{ key: `${run}/clip.xhtml`, type: 'video/x+xml', disposition: 'attachment' },
+				{ key: `${run}/track.xhtml`, type: 'audio/a+xml', disposition: 'attachment' },
+				{ key: `${run}/clip.mp4`, type: 'video/mp4', disposition: 'inline' },
 				{ key: `${run}/note.txt`, type: 'text/plain', disposition: 'inline' },
 				{ key: `${run}/doc.pdf`, type: 'application/pdf', disposition: 'inline' }
 			];

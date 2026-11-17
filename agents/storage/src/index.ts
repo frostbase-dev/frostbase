@@ -14,6 +14,7 @@ import {
 	demoRefusal,
 	type DemoObjectSummary,
 } from './demo.js';
+import { contentDisposition } from './inline.js';
 import { gateOperatorRoutes } from './route-access.js';
 import {
 	DEMO_PROJECT_PATTERN,
@@ -95,14 +96,6 @@ const ACCESS_CACHE_TTL_MS = 30_000;
 const NEGATIVE_CACHE_TTL_MS = 5_000;
 const ACCESS_CACHE_MAX = 5_000;
 const DEFAULT_PUBLIC_CACHE_CONTROL = 'public, max-age=60';
-
-/**
- * Content types a browser may render INLINE from our origin. Everything else
- * downloads. Notably absent by design: text/html, image/svg+xml, anything
- * +xml (all scriptable), text/css and javascript (style/script injection).
- */
-const INLINE_CONTENT_TYPES =
-	/^(image\/(png|jpe?g|gif|webp|avif|bmp|x-icon)|video\/[a-z0-9.+-]+|audio\/[a-z0-9.+-]+|text\/plain|application\/pdf)$/i;
 
 interface AccessCacheEntry {
 	answer: BucketAccessAnswer;
@@ -433,9 +426,7 @@ class StorageService extends WorkerEntrypoint<Env> {
 			etag: summary.etag,
 			'accept-ranges': 'bytes',
 			'x-content-type-options': 'nosniff',
-			'content-disposition': INLINE_CONTENT_TYPES.test(summary.contentType)
-				? 'inline'
-				: 'attachment',
+			'content-disposition': contentDisposition(summary.contentType),
 			'cache-control': DEFAULT_PUBLIC_CACHE_CONTROL,
 			'content-length': String(summary.size),
 		});
@@ -1263,10 +1254,7 @@ class StorageService extends WorkerEntrypoint<Env> {
 		// Serve-time policy, not write-time: presigned writes (S2.5) bypass
 		// write-time checks by design, so the serving layer decides what may
 		// render inline - and HTML/SVG/XML never do.
-		headers.set(
-			'content-disposition',
-			INLINE_CONTENT_TYPES.test(contentType) ? 'inline' : 'attachment',
-		);
+		headers.set('content-disposition', contentDisposition(contentType));
 		headers.set(
 			'cache-control',
 			publicRead ? (config.cacheControl ?? DEFAULT_PUBLIC_CACHE_CONTROL) : 'private, no-store',

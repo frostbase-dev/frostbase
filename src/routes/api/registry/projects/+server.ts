@@ -1,5 +1,10 @@
 import { activeOrg } from '$lib/console';
-import { createProject, listProjects } from '$lib/server/registry';
+import {
+	createProject,
+	listProjects,
+	mayReachUnownedProjects,
+	operatorProjectScope
+} from '$lib/server/registry';
 import type { RequestHandler } from './$types';
 
 /**
@@ -10,11 +15,11 @@ import type { RequestHandler } from './$types';
  */
 
 export const GET: RequestHandler = async ({ locals, platform }) => {
-	// Scoped to the operator's memberships plus unowned rows; an identity with
-	// no orgs (a pre-orgs agent, the 404 fallback) sees unowned rows only -
-	// which on a legacy install is everything.
-	const orgIds = locals.consoleIdentity?.organizations.map((org) => org.id);
-	return Response.json({ projects: await listProjects(platform, orgIds) });
+	// Scoped to the operator's memberships; unowned rows only for the console
+	// admin (see mayReachUnownedProjects).
+	return Response.json({
+		projects: await listProjects(platform, operatorProjectScope(locals.consoleIdentity))
+	});
 };
 
 export const POST: RequestHandler = async ({ locals, platform, request }) => {
@@ -22,6 +27,14 @@ export const POST: RequestHandler = async ({ locals, platform, request }) => {
 	// (agents from before organizations) keep minting unowned rows - exactly
 	// the legacy visibility they already have.
 	const org = locals.consoleIdentity ? activeOrg(locals.consoleIdentity) : null;
+	// An unowned row is reachable by the console admin alone, so anyone else
+	// minting one would create a project they could never open again.
+	if (!org && !mayReachUnownedProjects(locals.consoleIdentity)) {
+		return Response.json(
+			{ error: 'create or join an organization before creating a project' },
+			{ status: 409 }
+		);
+	}
 	const result = await createProject(
 		platform,
 		await request.json().catch(() => null),

@@ -11,12 +11,18 @@ import { agentFetcher, agentUrl, serverError } from '$lib/server/agents';
 import { isDemoMode, isDemoProjectId, resolveConsoleIdentity } from '$lib/server/console';
 import { guardConsoleClaim } from '$lib/server/console-setup';
 import { isServiceKeySurface, verifyServiceKey } from '$lib/server/service-keys';
-import { getProjectOwnership, projectExists, type ProjectOwnership } from '$lib/server/registry';
+import {
+	getProjectOwnership,
+	mayReachUnownedProjects,
+	projectExists,
+	type ProjectOwnership
+} from '$lib/server/registry';
 import { handleErrorWithSentry, initCloudflareSentryHandle, sentryHandle } from '@sentry/sveltekit';
 import { redirect } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import type { AppAgentEntry } from '$lib/agent-registry';
 import type { Handle } from '@sveltejs/kit';
+import { movedLocation } from '$lib/safe-redirect';
 
 let platform: App.Platform;
 
@@ -548,11 +554,14 @@ const consoleGuardHandle: Handle = async ({ event, resolve }) => {
 			if (!ownership.registered) return noSuchProject(access.kind);
 
 			// Owned rows require membership in the owning org. Rows with a null
-			// org predate ownership and stay visible to any operator - the
-			// self-hosted contract, where every operator is the same person.
+			// org predate ownership (or were released by a console reset) and
+			// belong to the console admin alone - "any operator" stopped meaning
+			// "the same person" once sign-ups could be open.
 			if (ownership.orgId) {
 				const isMember = identity.organizations.some((org) => org.id === ownership.orgId);
 				if (!isMember) return noSuchProject(access.kind);
+			} else if (!mayReachUnownedProjects(identity)) {
+				return noSuchProject(access.kind);
 			}
 		}
 		return resolve(event);
@@ -661,10 +670,10 @@ const domainMoveHandle: Handle = async ({ event, resolve }) => {
 	const moved = env?.MOVED_FROM_HOSTS?.split(',').map((host) => host.trim().toLowerCase());
 	if (!canonical || !moved?.includes(event.url.hostname.toLowerCase())) return resolve(event);
 	if (/^\/(api|agents)(\/|$)/.test(event.url.pathname)) return resolve(event);
-	const target = new URL(`${event.url.pathname}${event.url.search}`, canonical);
+	const target = movedLocation(event.url.pathname, event.url.search, canonical);
 	// 308 keeps the method for the odd form POST; navigations get a plain 301.
 	const status = event.request.method === 'GET' || event.request.method === 'HEAD' ? 301 : 308;
-	return new Response(null, { status, headers: { location: target.href } });
+	return new Response(null, { status, headers: { location: target } });
 };
 
 export const handle = sequence(

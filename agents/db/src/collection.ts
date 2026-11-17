@@ -4,7 +4,7 @@ import { count, eq } from 'drizzle-orm';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
 import { z } from 'zod';
 import migrations from './migrations.js';
-import { checkAccess, corsHeadersFor, drainUnusedBody, withCors } from './access.js';
+import { checkAccess, corsHeadersFor, drainUnusedBody, mayReadBack, withCors } from './access.js';
 import { primaryLocation } from './colo.js';
 import { collectionMeta, documents } from './db/schema.js';
 import { ProjectJwtVerifier } from './jwt.js';
@@ -957,7 +957,17 @@ export class DbCollection extends LiveShard {
 			owner: existing.owner,
 			upsert: false,
 		});
-		return this.withLsn(Response.json(written));
+		// The merged document is a read the write gate never authorized.
+		const readable =
+			this.config !== null &&
+			(await mayReadBack(
+				request,
+				this.config.readAccess,
+				this.config.readPermission,
+				this.getVerifier(),
+				existing.owner,
+			));
+		return this.withLsn(Response.json(readable ? written : { id: docId }));
 	}
 
 	private async handleDelete(docId: string, owner: string | null): Promise<Response> {

@@ -127,6 +127,24 @@ function gateStatement(rawSql: string, selectOnly: boolean): PreparedSql {
 }
 
 /**
+ * Refusals that bind the PUBLIC SQL paths only (a table's `/sql`, a view's),
+ * layered on top of the shared gate; operator SQL keeps the full dialect.
+ *
+ * A recursive CTE is the one construct whose cost is unbounded by anything
+ * the caller has to supply: `WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL
+ * SELECT x + 1 FROM c) SELECT count(*) FROM c` never terminates on its own,
+ * and it runs synchronously inside a single-threaded shard - so any guest
+ * token could hold a tenant's table until the runtime's CPU limit, then do it
+ * again. Same dumb word match as the internal-name scan, literals included.
+ */
+export function publicSqlRefusal(rawSql: string): string | null {
+	if (/\brecursive\b/i.test(rawSql)) {
+		return 'recursive CTEs do not run on the public API - if you meant the literal string, bind it as a parameter';
+	}
+	return null;
+}
+
+/**
  * The join-view gate (JOIN1): SELECT only, over the view's own SQLite.
  *
  * Joins need no allowlist of member names. The only user tables that exist in

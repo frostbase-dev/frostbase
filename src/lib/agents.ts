@@ -243,6 +243,18 @@ export const dbDocumentSchema = z
 	})
 	.meta({ id: 'DbDocument', description: 'A document: metadata outside data, no collisions.' });
 
+export const dbWriteAckSchema = z.object({ id: z.string() }).meta({
+	id: 'DbWriteAck',
+	description:
+		"The write landed, but the caller may not read the record back (readAccess `none`, or another owner's record under `owner` reads), so only its id is returned."
+});
+
+export const dbWriteResultSchema = z.union([dbDocumentSchema, dbWriteAckSchema]).meta({
+	id: 'DbWriteResult',
+	description:
+		'An update answers with the full record when the caller may read it, otherwise only its id - the merged record is a read the write gate never authorized.'
+});
+
 export const dbQueryResultSchema = z
 	.object({ docs: z.array(dbDocumentSchema), nextCursor: z.string().optional() })
 	.meta({ id: 'DbQueryResult' });

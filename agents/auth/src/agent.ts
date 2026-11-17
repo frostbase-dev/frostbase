@@ -784,7 +784,7 @@ export class AuthAgent extends Agent<Env, AuthAgentState> {
 						: 'Verify your email';
 		const intro =
 			message.type === 'invitation'
-				? `${message.invitation?.inviter ?? 'A team member'} invited you to "${message.invitation?.organization ?? 'their organization'}" on Frostbase. Sign in - or create an account with this email address - to accept.`
+				? `${message.invitation?.inviter ?? 'A team member'} invited you to "${message.invitation?.organization ?? 'their organization'}" on Frostbase. Open the link, then sign in - or create an account with this email address - to accept. The link is what accepts the invitation, so do not forward it.`
 				: 'Continue securely with the button below.';
 		const text = `${action}: ${message.url}\n\n${intro}\n\nIf you did not request this, you can ignore this email.`;
 		// EVERY interpolation is escaped, not just the URL. An organization name
@@ -1142,6 +1142,18 @@ export class AuthAgent extends Agent<Env, AuthAgentState> {
 			}
 			// Uniform answer - even local dev keeps account existence unguessable.
 			return Response.json({ status: true });
+		}
+
+		// Better Auth's own list of "invitations addressed to my email" hands out
+		// the ids that accept them to anyone holding the session's address -
+		// unproven in claimed mode, where console sign-up skips verification.
+		// The console never calls it; /console/me gates the same list on a
+		// verified address or the invite link.
+		if (
+			this.name === CONSOLE_PROJECT_ID &&
+			subPath === '/api/auth/organization/list-user-invitations'
+		) {
+			return Response.json({ error: 'not found' }, { status: 404 });
 		}
 
 		if (subPath === '/api/auth' || subPath.startsWith('/api/auth/')) {
@@ -1771,25 +1783,44 @@ export class AuthAgent extends Agent<Env, AuthAgentState> {
 			.where(eq(schema.member.userId, user.id))
 			.orderBy(asc(schema.member.createdAt));
 
-		const invitations = await this.db
-			.select({
-				id: schema.invitation.id,
-				organizationId: schema.invitation.organizationId,
-				organizationName: schema.organization.name,
-				role: schema.invitation.role,
-				inviterEmail: schema.user.email,
-				expiresAt: schema.invitation.expiresAt,
-			})
-			.from(schema.invitation)
-			.innerJoin(schema.organization, eq(schema.organization.id, schema.invitation.organizationId))
-			.leftJoin(schema.user, eq(schema.user.id, schema.invitation.inviterId))
-			.where(
-				and(
-					eq(sql`lower(${schema.invitation.email})`, user.email.toLowerCase()),
-					eq(schema.invitation.status, 'pending'),
-					gt(schema.invitation.expiresAt, new Date()),
-				),
-			);
+		// An invitation's id is the credential that accepts it, so it is handed
+		// out only to someone who has PROVED the invited inbox: a verified
+		// address, or a caller who already holds the id because it arrived by
+		// the invite link (?invitation=). Listing by a mere email match used to
+		// let anyone who registered an invited address first - verification is
+		// off in claimed mode - read the id and join the org.
+		const linkedId = new URL(request.url).searchParams.get('invitation');
+		const scope = user.emailVerified
+			? undefined
+			: linkedId
+				? eq(schema.invitation.id, linkedId)
+				: null;
+		const invitations =
+			scope === null
+				? []
+				: await this.db
+						.select({
+							id: schema.invitation.id,
+							organizationId: schema.invitation.organizationId,
+							organizationName: schema.organization.name,
+							role: schema.invitation.role,
+							inviterEmail: schema.user.email,
+							expiresAt: schema.invitation.expiresAt,
+						})
+						.from(schema.invitation)
+						.innerJoin(
+							schema.organization,
+							eq(schema.organization.id, schema.invitation.organizationId),
+						)
+						.leftJoin(schema.user, eq(schema.user.id, schema.invitation.inviterId))
+						.where(
+							and(
+								eq(sql`lower(${schema.invitation.email})`, user.email.toLowerCase()),
+								eq(schema.invitation.status, 'pending'),
+								gt(schema.invitation.expiresAt, new Date()),
+								scope,
+							),
+						);
 
 		return Response.json({
 			user: {

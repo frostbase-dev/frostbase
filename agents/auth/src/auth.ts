@@ -270,14 +270,15 @@ export function createProjectAuth(config: ProjectAuthConfig) {
 				organizationLimit: config.orgLimit,
 				sendInvitationEmail: config.sendEmail
 					? async (data, request) => {
-							// The console surfaces pending invitations after sign-in, so
-							// the link only needs to land the invitee on the login page
-							// of the deployment the invite was minted from.
+							// The link carries the invitation id, and the id is what
+							// accepts it: the console only shows an unverified account
+							// the invitation it holds the link to. Landing on /dashboard
+							// sends a signed-out invitee through /login and back.
 							const origin = request ? new URL(request.url).origin : config.trustedOrigins[0];
 							await config.sendEmail?.({
 								type: 'invitation',
 								to: data.email,
-								url: origin ? `${origin}/login` : '',
+								url: origin ? `${origin}/dashboard?invitation=${encodeURIComponent(data.id)}` : '',
 								invitation: {
 									organization: data.organization.name,
 									inviter: data.inviter.user.email,

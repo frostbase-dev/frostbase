@@ -1,6 +1,6 @@
 {
 	"name": "@frostbase-dev/storage",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "Object storage on Cloudflare R2 - buckets of files with per-bucket access modes, an object index with keyset paging, one Durable Object orchestrator per project - the storage primitive behind Frostbase.",
 	"license": "Apache-2.0",
 	"type": "module",
@@ -52,7 +52,7 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"typecheck": "tsc --noEmit",
-		"test:unit": "node --import tsx --test src/route-access.unit.test.ts src/access.unit.test.ts src/keys.unit.test.ts src/signing.unit.test.ts src/reconcile.unit.test.ts",
+		"test:unit": "node --import tsx --test src/route-access.unit.test.ts src/access.unit.test.ts src/inline.unit.test.ts src/keys.unit.test.ts src/signing.unit.test.ts src/reconcile.unit.test.ts",
 		"prepublishOnly": "npm run build",
 		"deploy": "wrangler deploy",
 		"deploy:preview": "wrangler deploy --env preview",
