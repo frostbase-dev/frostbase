@@ -3,7 +3,7 @@ import { getAgentByName, type AgentNamespace } from 'agents';
 import { migrate } from 'drizzle-orm/durable-sqlite/migrator';
 import { z } from 'zod';
 import migrations from './migrations.js';
-import { checkAccess, corsHeadersFor, drainUnusedBody, withCors } from './access.js';
+import { checkAccess, corsHeadersFor, drainUnusedBody, mayReadBack, withCors } from './access.js';
 import { primaryLocation } from './colo.js';
 import { collectionMeta } from './db/schema.js';
 import { ProjectJwtVerifier } from './jwt.js';
@@ -984,7 +984,17 @@ export class DbTable extends LiveShard {
 			const written = await this.writeRow(rowId, merged, {
 				owner: (existing.owner as string | null) ?? null,
 			});
-			return this.withLsn(Response.json(written));
+			// The merged row is a read the write gate never authorized.
+			const readable =
+				!!this.config &&
+				(await mayReadBack(
+					request,
+					this.config.readAccess,
+					this.config.readPermission,
+					this.getVerifier(),
+					(existing.owner as string | null) ?? null,
+				));
+			return this.withLsn(Response.json(readable ? written : { id: rowId }));
 		} catch (error) {
 			return this.uniqueViolationResponse(error) ?? this.rethrow(error);
 		}
@@ -1109,31 +1119,40 @@ export class DbTable extends LiveShard {
 			prepared.push({ ...gate, params: statement.params ?? [] });
 		}
 
-		// A batch carrying ANY write is judged on the write side - a mixed batch
-		// is a write.
+		// Each side a batch touches is judged on its OWN mode. A batch used to be
+		// judged on the write side alone whenever it carried any write, which let
+		// a SELECT ride inside a write batch past a read mode that refuses it.
+		const wantsRead = prepared.some((statement) => statement.kind === 'select');
 		const wantsWrite = prepared.some((statement) => statement.kind !== 'select');
-		const mode = wantsWrite ? config.writeAccess : config.readAccess;
+		const sides: ('read' | 'write')[] = [
+			...(wantsWrite ? (['write'] as const) : []),
+			...(wantsRead ? (['read'] as const) : []),
+		];
 
 		// This path deliberately does NOT go through checkAccess (raw SQL always
 		// demands a token, whatever the mode says), so every mode the gate
 		// refuses has to be refused again HERE. Miss one and raw SQL becomes the
 		// way around it - which is exactly the bypass `none` exists to prevent.
-		if (mode === 'owner') {
-			return Response.json(
-				{ success: false, error: 'owner-scoped tables refuse raw SQL - use the typed API' },
-				{ status: 403 },
-			);
-		}
-		if (mode === 'none') {
-			return Response.json(
-				{
-					success: false,
-					error: wantsWrite
-						? 'this table is read-only over the public API'
-						: 'this table is not readable over the public API',
-				},
-				{ status: 403 },
-			);
+		for (const side of sides) {
+			const mode = side === 'write' ? config.writeAccess : config.readAccess;
+			if (mode === 'owner') {
+				return Response.json(
+					{ success: false, error: 'owner-scoped tables refuse raw SQL - use the typed API' },
+					{ status: 403 },
+				);
+			}
+			if (mode === 'none') {
+				return Response.json(
+					{
+						success: false,
+						error:
+							side === 'write'
+								? 'this table is read-only over the public API'
+								: 'this table is not readable over the public API',
+					},
+					{ status: 403 },
+				);
+			}
 		}
 
 		const header = request.headers.get('authorization');
@@ -1157,16 +1176,34 @@ export class DbTable extends LiveShard {
 				{ status: verified.code === 'not-configured' ? 503 : 401 },
 			);
 		}
-		const required = wantsWrite ? config.writePermission : config.readPermission;
-		if (!hasPermission(required, verified.claims.permissions)) {
-			return Response.json(
-				{ success: false, error: 'the token does not carry the required permission' },
-				{ status: 403 },
-			);
+		for (const side of sides) {
+			const required = side === 'write' ? config.writePermission : config.readPermission;
+			if (!hasPermission(required, verified.claims.permissions)) {
+				return Response.json(
+					{ success: false, error: 'the token does not carry the required permission' },
+					{ status: 403 },
+				);
+			}
 		}
+
+		// Every write comes back with RETURNING over the full row, and that is a
+		// READ. On a table the caller may write but not read - `readAccess:
+		// 'none'` is append-only ingest, `owner` hides other people's rows - the
+		// write still lands but its rows do not come back; otherwise
+		// `UPDATE t SET c = c` would read the whole table out.
+		const mayReadBack =
+			config.readAccess !== 'none' &&
+			config.readAccess !== 'owner' &&
+			hasPermission(config.readPermission, verified.claims.permissions);
 
 		try {
 			const outcome = this.runSqlStatements(prepared);
+			if (!mayReadBack) {
+				for (const result of outcome.results) {
+					result.results = [];
+					result.raw = [];
+				}
+			}
 			for (const notice of outcome.notifications) {
 				if (notice.kind === 'delete') {
 					await this.notifySubscribers(notice.row, null);

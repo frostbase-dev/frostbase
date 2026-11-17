@@ -208,6 +208,17 @@ export abstract class LiveShard extends DurableObject<Env> {
 		| { ok: false; code: 'unauthorized'; message: string }
 	> {
 		if (gate.readAccess === 'public') return { ok: true, ownerSub: null, tokenExp: null };
+		// `none` closes the public read plane outright, exactly as checkAccess
+		// does for REST - and BEFORE the token is read, because no token opens
+		// it. Without this a closed collection streamed its snapshot and every
+		// later write to any caller holding a valid token, a guest's included.
+		if (gate.readAccess === 'none') {
+			return {
+				ok: false,
+				code: 'unauthorized',
+				message: 'this collection is not readable over the public API - it is operator-only',
+			};
+		}
 		if (!token) {
 			return {
 				ok: false,

@@ -79,6 +79,25 @@ export async function checkAccess(
 }
 
 /**
+ * Whether the caller of a WRITE may see the record it produced. A write is
+ * gated on the write side only, but an update's response carries the whole
+ * stored record - PATCH merges over fields the caller never sent - so echoing
+ * it is a read. On `readAccess: 'none'` (append-only ingest) or an `owner`
+ * read over someone else's record, that read is exactly what the mode exists
+ * to refuse. Answered by the same gate a GET would pass through.
+ */
+export async function mayReadBack(
+	request: Request,
+	mode: AccessMode,
+	permission: string | null,
+	verifier: ProjectJwtVerifier,
+	recordOwner: string | null,
+): Promise<boolean> {
+	const decision = await checkAccess(request, mode, permission, verifier);
+	return decision.ok && (decision.owner === null || decision.owner === recordOwner);
+}
+
+/**
  * Exact-origin CORS echo over the deployment's own origin, environment
  * TRUSTED_ORIGINS, and the project's allowed origins - null means the origin
  * is untrusted (callers answer 403 for browser requests carrying one).
