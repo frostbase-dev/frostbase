@@ -48,6 +48,25 @@ test.describe('console guard', () => {
 		expect(response.status()).toBe(401);
 	});
 
+	test('a percent-encoded path prefix does not slip past the guard', async ({ request }) => {
+		// SvelteKit's router decodes `%61pi` to `api` and runs the `/api/...`
+		// handler, but the guard used to classify the still-encoded path: it saw
+		// `%61pi`, matched no protected prefix, and waved the request through as
+		// public. So `/%61pi/registry/projects` reached every operator endpoint
+		// with no session. The guard must now see the same decoded path the
+		// router dispatches on, GET and POST alike.
+		const listed = await request.get('/%61pi/registry/projects');
+		expect(listed.status(), 'encoded /api must stay operator-only').toBe(401);
+
+		const me = await request.get('/%61pi/console/me');
+		expect(me.status()).toBe(401);
+
+		const created = await request.post('/%61pi/registry/projects', {
+			data: { id: 'guard-bypass-probe', name: 'probe' }
+		});
+		expect(created.status(), 'encoded /api must not create a project').toBe(401);
+	});
+
 	test('the chat endpoint is not a free anonymous AI proxy', async ({ request }) => {
 		const response = await request.post(chatPath(SEED_PROJECT), {
 			data: { question: 'who are the users?' }

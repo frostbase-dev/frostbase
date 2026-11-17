@@ -237,9 +237,35 @@ type Access =
  * The agent workers have no public route (`workers_dev` and `preview_urls`
  * are both false), so every external request to them arrives through here.
  */
-function classifyAccess(pathname: string): Access {
-	const segments = pathname.split('/').filter(Boolean);
+/**
+ * The path SvelteKit's router actually dispatches on: each segment decoded
+ * exactly once, the way the router decodes it before matching a route.
+ *
+ * The guard MUST classify THIS and never the raw `url.pathname`. The router
+ * decodes `%61pi` to `api` and runs the `/api/...` handler, but a raw-path
+ * check sees the literal `%61pi`, matches no protected prefix, and classifies
+ * the request `open` - so an anonymous caller reached every operator endpoint
+ * through `/%61pi/...`. Decoding each segment here puts the guard and the
+ * dispatcher back on one path. Per segment, and never re-split afterwards: an
+ * encoded slash (`%2F`) in a catch-all stays inside its segment for routing
+ * and must not fan out into new segments the classifier would read as
+ * structure. A malformed escape can't name a real route, so a segment that
+ * won't decode is left as-is.
+ */
+function routedSegments(pathname: string): string[] {
+	return pathname
+		.split('/')
+		.filter(Boolean)
+		.map((segment) => {
+			try {
+				return decodeURIComponent(segment);
+			} catch {
+				return segment;
+			}
+		});
+}
 
+function classifyAccess(segments: string[]): Access {
 	// /agents/<worker>/<projectId>/<subPath...>
 	if (segments[0] === 'agents') {
 		const entry = agentByWorkerSegment(segments[1] ?? '');
@@ -379,7 +405,13 @@ const consoleGuardHandle: Handle = async ({ event, resolve }) => {
 	event.locals.consoleIdentity = null;
 	event.locals.serviceKey = null;
 
-	const access = classifyAccess(event.url.pathname);
+	// Classify the path the router will dispatch on, not the raw URL: a
+	// percent-encoded prefix (`/%61pi/...`) otherwise slips past the guard and
+	// still reaches its decoded handler. routedPath is that same decoded path,
+	// reused below so the service-key surface check agrees with it.
+	const segments = routedSegments(event.url.pathname);
+	const routedPath = `/${segments.join('/')}`;
+	const access = classifyAccess(segments);
 	if (access.scope === 'open') {
 		// Public still has to mean "public surface of a project that exists".
 		// The agents provision a Durable Object on first touch, so a sign-up
@@ -441,7 +473,7 @@ const consoleGuardHandle: Handle = async ({ event, resolve }) => {
 		if (
 			access.projectId &&
 			!origin &&
-			isServiceKeySurface(event.url.pathname, access.projectId) &&
+			isServiceKeySurface(routedPath, access.projectId) &&
 			!isDemoProjectId(access.projectId)
 		) {
 			const grant = await verifyServiceKey(event.platform, serviceBearer.toLowerCase());
