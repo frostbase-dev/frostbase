@@ -147,6 +147,21 @@
 		}
 	}
 
+	// The invite link is what accepts an invitation - the console shows an
+	// account whose address is unverified only the invitation it holds the link
+	// to - so the inviter hands it over directly whenever mail cannot.
+	let copiedInvitation = $state<string | null>(null);
+
+	async function copyInviteLink(invitationId: string) {
+		const link = new URL('/dashboard', location.origin);
+		link.searchParams.set('invitation', invitationId);
+		await navigator.clipboard.writeText(link.toString());
+		copiedInvitation = invitationId;
+		setTimeout(() => {
+			if (copiedInvitation === invitationId) copiedInvitation = null;
+		}, 2000);
+	}
+
 	let cancelBusy = $state<string | null>(null);
 
 	async function cancelInvitation(invitationId: string) {
@@ -235,8 +250,9 @@
 				<p class="text-sm text-destructive" data-testid="invite-error">{inviteError}</p>
 			{:else if inviteSent}
 				<p class="text-sm text-muted-foreground" data-testid="invite-sent">
-					Invitation created. The invitee signs up (or in) with that email and accepts from their
-					projects page.
+					Invitation created. Send the invitee its link - copy it below; an invitation email, when
+					this console can send mail, carries the same link. They open it, then sign up (or in) with
+					that email to accept.
 				</p>
 			{/if}
 
@@ -250,6 +266,14 @@
 								<p class="text-xs text-muted-foreground">Pending invitation</p>
 							</div>
 							{#if canAdminister}
+								<Button
+									size="sm"
+									variant="outline"
+									data-testid="copy-invite-link"
+									onclick={() => copyInviteLink(invitation.id)}
+								>
+									{copiedInvitation === invitation.id ? 'Copied' : 'Copy link'}
+								</Button>
 								<Button
 									size="sm"
 									variant="outline"

@@ -73,15 +73,34 @@ test.describe('organizations and ownership', () => {
 			expect(token, 'the console issues bearer tokens like any project').toBeTruthy();
 			const asInvitee = { authorization: `Bearer ${token}` };
 
-			// The invitee's identity: their own personal org plus the pending
-			// invitation, in one round trip.
+			// The invitee's identity: their own personal org - and NOT the
+			// invitation. Registering an address proves nothing here (claimed
+			// consoles skip verification), and the id is what accepts the
+			// invitation, so anyone who registered an invited address first used
+			// to read it from this list and join the org. Only a verified
+			// address, or the invite link, reveals it.
 			const inviteeMe = await anon.get('/api/console/me', { headers: asInvitee });
 			expect(inviteeMe.ok(), await inviteeMe.text()).toBeTruthy();
 			const inviteeIdentity = await inviteeMe.json();
+			expect(inviteeIdentity.user.emailVerified).toBe(false);
 			expect(inviteeIdentity.organizations.length).toBeGreaterThanOrEqual(1);
-			expect(inviteeIdentity.pendingInvitations.map((entry: { id: string }) => entry.id)).toContain(
-				invitation.id
-			);
+			expect(inviteeIdentity.pendingInvitations).toEqual([]);
+
+			// Nor through Better Auth's own by-email listing.
+			const listed = await anon.get(consoleAuthPath('organization/list-user-invitations'), {
+				headers: asInvitee
+			});
+			expect(listed.status()).toBe(404);
+
+			// The invite link carries the id; holding it is the proof, and the
+			// projects page then offers exactly that invitation.
+			const viaLink = await anon.get(`/dashboard?invitation=${encodeURIComponent(invitation.id)}`, {
+				headers: asInvitee
+			});
+			expect(viaLink.ok(), `${viaLink.status()}`).toBeTruthy();
+			expect(await viaLink.text()).toContain('data-testid="accept-invitation"');
+			const withoutLink = await anon.get('/dashboard', { headers: asInvitee });
+			expect(await withoutLink.text()).not.toContain('data-testid="accept-invitation"');
 			const inviteeOrgId: string = inviteeIdentity.organizations[0].id;
 			expect(inviteeOrgId).not.toBe(operatorOrgId);
 

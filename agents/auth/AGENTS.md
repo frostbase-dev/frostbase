@@ -62,6 +62,14 @@ turns every project JWT into an admin token.
   (`src/email-callback.ts`). Better Auth re-validates the absolute URL against
   the same allowlist at click time, so both halves must agree before anyone is
   redirected.
+- **An invitation id is a credential** — it is what accepts the invitation,
+  and Better Auth's accept only compares the session email to the invited one.
+  A claimed console skips email verification, so registering an address proves
+  nothing. The id therefore reaches an account only through a verified address
+  or the invite link (`/dashboard?invitation=<id>`, mailed or copied from the
+  org page); `/console/me` gates its list on that and the console refuses
+  Better Auth's by-email `list-user-invitations`. Never list invitation ids by
+  email match alone.
 - **Outbound mail is attacker-influenced.** Org names, inviter addresses, and
   reset URLs all land inside an HTML body sent from the deployment's verified
   sender. Interpolate through `escapeHtml` / `headerSafe`, never raw.
