@@ -28,13 +28,15 @@ serving. `src/agent.ts` is control plane only.
   no `.`/`..` segments, no empty segments, no leading/trailing slashes, no
   control characters, and the full key stays under R2's 1024-byte ceiling. Use
   the normalized key `parseObjectKey` returns — never the raw path.
-- **Inline rendering is an allowlist**, not a denylist: raster images, video,
-  audio, `text/plain`, PDF. Everything else goes out
-  `Content-Disposition: attachment`, and every object response carries
-  `X-Content-Type-Options: nosniff`. HTML, SVG, and anything `+xml` are absent
-  by design — on the managed service the agent path shares the console's origin,
-  so an attacker-uploaded HTML file rendered inline is stored XSS against every
-  operator session.
+- **Inline rendering is an allowlist of exact types** (`src/inline.ts`), not a
+  denylist and not a pattern: raster images, common video and audio, `text/plain`,
+  PDF. Everything else goes out `Content-Disposition: attachment`, and every
+  object response carries `X-Content-Type-Options: nosniff`. HTML, SVG, and
+  anything `+xml` are absent by design — on the managed service the agent path
+  shares the console's origin, so an attacker-uploaded HTML file rendered inline
+  is stored XSS against every operator session. Never widen it back to a
+  `video/*`-style pattern: browsers render *any* `+xml` subtype as an XML
+  document, so `video/x+xml` carrying XHTML runs script.
 - **The R2 bucket must NEVER carry r2.dev or a custom domain.** That serves every
   tenant's keys raw, bypassing all of the above. `STORAGE_SERVE_DOMAIN` is a
   *worker* route with identical enforcement.

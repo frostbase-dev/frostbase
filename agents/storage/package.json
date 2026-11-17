@@ -52,7 +52,7 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"typecheck": "tsc --noEmit",
-		"test:unit": "node --import tsx --test src/route-access.unit.test.ts src/access.unit.test.ts src/keys.unit.test.ts src/signing.unit.test.ts src/reconcile.unit.test.ts",
+		"test:unit": "node --import tsx --test src/route-access.unit.test.ts src/access.unit.test.ts src/inline.unit.test.ts src/keys.unit.test.ts src/signing.unit.test.ts src/reconcile.unit.test.ts",
 		"prepublishOnly": "npm run build",
 		"deploy": "wrangler deploy",
 		"deploy:preview": "wrangler deploy --env preview",
