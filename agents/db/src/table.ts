@@ -29,7 +29,7 @@ import {
 import { getPath, encodeCursor, decodeCursor, type DecodedCursor } from './query.js';
 import { shardBookmarkForTime, shardCurrentBookmark, shardRestoreTo } from './pitr.js';
 import { hasPermission } from './rules.js';
-import { prepareTableSql } from './table-sql.js';
+import { prepareTableSql, publicSqlRefusal } from './table-sql.js';
 import {
 	applyColumnDefaults,
 	isDuplicateColumnError,
@@ -1116,6 +1116,8 @@ export class DbTable extends LiveShard {
 			if (!gate.ok) {
 				return Response.json({ success: false, error: gate.error }, { status: 400 });
 			}
+			const refusal = publicSqlRefusal(statement.sql);
+			if (refusal) return Response.json({ success: false, error: refusal }, { status: 400 });
 			prepared.push({ ...gate, params: statement.params ?? [] });
 		}
 

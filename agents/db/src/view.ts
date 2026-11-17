@@ -17,7 +17,7 @@ import {
 } from './replication.js';
 import { hasPermission } from './rules.js';
 import { planDdl, quoteIdent, toSqlValue } from './table-schema.js';
-import { prepareViewSql } from './table-sql.js';
+import { prepareViewSql, publicSqlRefusal } from './table-sql.js';
 import {
 	logEntrySchema,
 	storedViewConfigSchema,
@@ -232,6 +232,8 @@ export class DbView extends DurableObject<Env> {
 		for (const statement of statements) {
 			const gate = prepareViewSql(statement.sql);
 			if (!gate.ok) return Response.json({ success: false, error: gate.error }, { status: 400 });
+			const refusal = publicSqlRefusal(statement.sql);
+			if (refusal) return Response.json({ success: false, error: refusal }, { status: 400 });
 			prepared.push({ sql: gate.sql, params: statement.params ?? [] });
 		}
 

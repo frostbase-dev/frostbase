@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { prepareTableSql, prepareViewSql } from './table-sql.js';
+import { prepareTableSql, prepareViewSql, publicSqlRefusal } from './table-sql.js';
 import { compileTableAggregate } from './table-query.js';
 import { tableColumnsSchema, type TableColumn } from './schemas.js';
 
@@ -248,4 +248,27 @@ test('table aggregates: typed columns sum directly, json paths stay gated', () =
 		TODO,
 	);
 	assert.equal(unknown.ok, false);
+});
+
+test('public sql: recursive CTEs are refused, ordinary CTEs and operator SQL are not', () => {
+	// The unbounded one: it never terminates on its own inside a shard.
+	for (const sql of [
+		'WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c) SELECT count(*) FROM c',
+		'with recursive c(x) as (select 1 union all select x+1 from c) select x from c',
+		'WITH\nRECURSIVE c(x) AS (SELECT 1) SELECT x FROM c',
+		'WITH a AS (SELECT 1), RECURSIVE b(x) AS (SELECT 1) SELECT 1',
+	]) {
+		assert.match(publicSqlRefusal(sql) ?? '', /recursive CTEs/, sql);
+	}
+	assert.equal(publicSqlRefusal('WITH top AS (SELECT * FROM todos) SELECT * FROM top'), null);
+	assert.equal(publicSqlRefusal('SELECT * FROM todos WHERE title = ?'), null);
+	// The shared gate still admits it - the refusal binds the public paths only.
+	assert.equal(
+		prepareTableSql(
+			'WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c LIMIT 3) SELECT x FROM c',
+			'todos',
+			TODO,
+		).ok,
+		true,
+	);
 });
